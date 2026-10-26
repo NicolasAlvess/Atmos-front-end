@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BarChart,
@@ -19,49 +19,95 @@ interface ResponseData {
   [key: string]: string;
 }
 
+const API_URL = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '');
+
 export default function Dashboard() {
   const [data, setData] = useState<ResponseData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL;
-
+  const fetchResponses = useCallback(async () => {
     if (!API_URL) {
-      console.error(
-        'A variável VITE_API_URL não está configurada na Vercel.'
+      setErrorMessage(
+        'A variável VITE_API_URL não está configurada. Verifique as variáveis de ambiente da Vercel e faça um novo deploy.'
       );
+      setLoading(false);
       return;
     }
 
-    fetch(`${API_URL}/api/admin/responses`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Erro HTTP: ${res.status}`);
-        }
+    setLoading(true);
+    setErrorMessage('');
 
-        return res.json();
-      })
-      .then((responses: ResponseData[]) => {
-        setData(responses);
-      })
-      .catch((err) => {
-        console.error('Erro ao buscar dados:', err);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/responses`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json'
+        }
       });
+
+      if (!response.ok) {
+        throw new Error(
+          `O servidor retornou o erro HTTP ${response.status}.`
+        );
+      }
+
+      const responses: unknown = await response.json();
+
+      if (!Array.isArray(responses)) {
+        throw new Error(
+          'A API retornou um formato inesperado. Era esperada uma lista de respostas.'
+        );
+      }
+
+      setData(responses as ResponseData[]);
+    } catch (error) {
+      console.error('Erro ao buscar respostas da API:', error);
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível carregar as respostas.'
+      );
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const calcAverage = (dataset: ResponseData[], key: string) => {
-    const validResponses = dataset.filter((d) => d[key]);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      void fetchResponses();
+    }, 0);
 
-    if (validResponses.length === 0) return 0;
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [fetchResponses]);
 
-    const sum = validResponses.reduce(
-      (acc, curr) => acc + parseInt(curr[key], 10),
+  const calcAverage = (
+    dataset: ResponseData[],
+    key: string
+  ): number => {
+    const validValues = dataset
+      .map((item) => Number(item[key]))
+      .filter(
+        (value) =>
+          Number.isFinite(value) &&
+          value >= 1 &&
+          value <= 5
+      );
+
+    if (validValues.length === 0) {
+      return 0;
+    }
+
+    const sum = validValues.reduce(
+      (acc, value) => acc + value,
       0
     );
 
-    return parseFloat(
-      (sum / validResponses.length).toFixed(1)
-    );
+    return Number((sum / validValues.length).toFixed(1));
   };
 
   const generalClimateData = [
@@ -99,22 +145,25 @@ export default function Dashboard() {
     }
   ];
 
+  const answeredDimensions = generalClimateData.filter(
+    (item) => item.nota > 0
+  );
+
   const mediaGeral =
-    data.length > 0
+    answeredDimensions.length > 0
       ? (
-          generalClimateData.reduce(
-            (acc, curr) => acc + curr.nota,
+          answeredDimensions.reduce(
+            (acc, item) => acc + item.nota,
             0
-          ) / 8
+          ) / answeredDimensions.length
         ).toFixed(1)
       : '0.0';
 
-  // Lógica para o relatório automático
-  const pontoForte = [...generalClimateData].sort(
+  const pontoForte = [...answeredDimensions].sort(
     (a, b) => b.nota - a.nota
   )[0];
 
-  const pontoCritico = [...generalClimateData].sort(
+  const pontoCritico = [...answeredDimensions].sort(
     (a, b) => a.nota - b.nota
   )[0];
 
@@ -124,7 +173,7 @@ export default function Dashboard() {
     q2Key: string
   ) => {
     const sectorData = data.filter(
-      (d) => d.setor === sectorName
+      (item) => item.setor === sectorName
     );
 
     return {
@@ -263,7 +312,6 @@ export default function Dashboard() {
       </header>
 
       <main className="relative z-10 flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 print:py-0 print:px-0">
-        {/* Cabeçalho de impressão */}
         <div className="hidden print:block mb-8 border-b-2 border-slate-800 pb-4">
           <h1 className="text-3xl font-extrabold text-slate-900 uppercase tracking-tight">
             Relatório de Diagnóstico de Clima Organizacional
@@ -290,7 +338,7 @@ export default function Dashboard() {
                 Amostragem
               </p>
               <p className="text-2xl font-bold text-slate-800">
-                {data.length}{' '}
+                {loading ? '...' : data.length}{' '}
                 <span className="text-sm font-normal text-slate-500">
                   respostas
                 </span>
@@ -302,7 +350,7 @@ export default function Dashboard() {
                 Média Global
               </p>
               <p className="text-2xl font-bold text-blue-600 print:text-black">
-                {mediaGeral}{' '}
+                {loading ? '...' : mediaGeral}{' '}
                 <span className="text-sm font-normal text-slate-500">
                   / 5.0
                 </span>
@@ -311,235 +359,261 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Guia de interpretação */}
-        <div className="bg-sky-50 border border-sky-200 rounded-2xl p-5 mb-6 shadow-sm print:hidden">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 text-sky-600">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+        {loading && (
+          <div className="bg-white border border-blue-100 rounded-xl p-5 mb-6 text-sm text-blue-700">
+            Carregando respostas do servidor...
+          </div>
+        )}
+
+        {!loading && errorMessage && (
+          <div
+            role="alert"
+            className="bg-red-50 border border-red-200 rounded-xl p-5 mb-6 text-sm text-red-800"
+          >
+            <p className="font-semibold mb-2">
+              Não foi possível carregar os dados.
+            </p>
+            <p className="mb-4">{errorMessage}</p>
+            <button
+              type="button"
+              onClick={() => void fetchResponses()}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        )}
+
+        {!loading && !errorMessage && (
+          <>
+            <div className="bg-sky-50 border border-sky-200 rounded-2xl p-5 mb-6 shadow-sm print:hidden">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 text-sky-600">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-sky-900 mb-2">
+                    Como interpretar este relatório para o Plano de Intervenção
+                  </h3>
+
+                  <ul className="text-sm text-sky-800 space-y-1.5 list-disc list-inside">
+                    <li>
+                      <strong>Métricas por Cores:</strong>{' '}
+                      <span className="text-emerald-600 font-semibold">
+                        Verde (≥ 4.0)
+                      </span>{' '}
+                      indica zonas de excelência e engajamento.{' '}
+                      <span className="text-amber-600 font-semibold">
+                        Amarelo (3.0 a 3.9)
+                      </span>{' '}
+                      indica alerta e necessidade de monitoramento.{' '}
+                      <span className="text-red-600 font-semibold">
+                        Vermelho (&lt; 3.0)
+                      </span>{' '}
+                      aponta criticidade, exigindo prioridade nas ações.
+                    </li>
+                    <li>
+                      <strong>Mapeamento Global:</strong> O gráfico de barras
+                      mostra a percepção sistêmica da empresa. Utilize os
+                      indicadores mais fracos para propor intervenções.
+                    </li>
+                    <li>
+                      <strong>Microclima por Setor:</strong> Os cards
+                      segmentados revelam como cada área vive a cultura.
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-sky-900 mb-2">
-                Como interpretar este relatório para o Plano de Intervenção
+            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 mb-8 shadow-sm print:bg-white print:border-slate-300 print:shadow-none">
+              <h3 className="text-lg font-bold text-blue-900 mb-3 print:text-slate-900">
+                Parecer Técnico: Resumo do Diagnóstico
               </h3>
 
-              <ul className="text-sm text-sky-800 space-y-1.5 list-disc list-inside">
-                <li>
-                  <strong>Métricas por Cores:</strong>{' '}
-                  <span className="text-emerald-600 font-semibold">
-                    Verde (≥ 4.0)
-                  </span>{' '}
-                  indica zonas de excelência e engajamento.{' '}
-                  <span className="text-amber-600 font-semibold">
-                    Amarelo (3.0 a 3.9)
-                  </span>{' '}
-                  indica alerta e necessidade de monitoramento.{' '}
-                  <span className="text-red-600 font-semibold">
-                    Vermelho (&lt; 3.0)
-                  </span>{' '}
-                  aponta criticidade, exigindo prioridade absoluta nas ações do seu relatório.
-                </li>
-                <li>
-                  <strong>Mapeamento Global:</strong> O gráfico de barras mostra a percepção sistêmica da empresa. Utilize os indicadores mais fracos para propor intervenções corporativas.
-                </li>
-                <li>
-                  <strong>Microclima por Setor:</strong> Os cards segmentados revelam como cada área vive a cultura. Use estes dados para desenhar ações focadas por departamento.
-                </li>
-              </ul>
+              <div className="text-sm text-slate-700 space-y-3 leading-relaxed">
+                <p>
+                  O presente diagnóstico foi construído com base nas percepções
+                  de <strong>{data.length} colaboradores</strong>. A média
+                  global de favorabilidade organizacional encontra-se em{' '}
+                  <strong>{mediaGeral} pontos</strong> (numa escala de 1 a 5).
+                </p>
+
+                {answeredDimensions.length > 0 ? (
+                  <>
+                    <p>
+                      <strong>Ponto Forte (Retenção):</strong> A dimensão
+                      melhor avaliada pela equipe foi{' '}
+                      <strong>{pontoForte?.name}</strong>, com uma média de{' '}
+                      <strong>{pontoForte?.nota}</strong>. Esta prática deve
+                      ser mantida e reforçada.
+                    </p>
+
+                    <p>
+                      <strong>Gargalo Cultural (Foco de Intervenção):</strong>{' '}
+                      A dimensão com menor média é{' '}
+                      <strong>{pontoCritico?.name}</strong>, com média de{' '}
+                      <strong>{pontoCritico?.nota}</strong>. Recomenda-se
+                      investigar as causas e planejar ações de melhoria.
+                    </p>
+                  </>
+                ) : (
+                  <p className="italic text-slate-500">
+                    Ainda não há respostas válidas para calcular as médias.
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Parecer técnico automático */}
-        <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 mb-8 shadow-sm print:bg-white print:border-slate-300 print:shadow-none">
-          <h3 className="text-lg font-bold text-blue-900 mb-3 print:text-slate-900">
-            Parecer Técnico: Resumo do Diagnóstico
-          </h3>
-
-          <div className="text-sm text-slate-700 space-y-3 leading-relaxed">
-            <p>
-              O presente diagnóstico foi construído com base nas percepções de{' '}
-              <strong>{data.length} colaboradores</strong>. A média global de
-              favorabilidade organizacional encontra-se em{' '}
-              <strong>{mediaGeral} pontos</strong> (numa escala de 1 a 5).
-            </p>
-
-            {data.length > 0 ? (
-              <>
-                <p>
-                  <strong>Ponto Forte (Retenção):</strong> A dimensão melhor
-                  avaliada pela equipe foi{' '}
-                  <strong>{pontoForte?.name}</strong>, com uma média de{' '}
-                  <strong>{pontoForte?.nota}</strong>. Isto indica uma prática
-                  cultural bem estabelecida que deve ser mantida e reforçada
-                  como pilar estratégico da organização.
-                </p>
-
-                <p>
-                  <strong>Gargalo Cultural (Foco de Intervenção):</strong> A
-                  dimensão com maior vulnerabilidade atual é{' '}
-                  <strong>{pontoCritico?.name}</strong>, apresentando uma média
-                  crítica de <strong>{pontoCritico?.nota}</strong>. É recomendado
-                  que o plano de ação de curto prazo direcione recursos e
-                  iniciativas corretivas especificamente para esta área,
-                  mitigando riscos de turnover e passivos trabalhistas.
-                </p>
-              </>
-            ) : (
-              <p className="italic text-slate-500">
-                Coletando dados para gerar o parecer automatizado...
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Mapeamento de clima */}
-        <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm mb-8 print:border-slate-300 print:shadow-none print:break-inside-avoid">
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-slate-800">
-              Mapeamento de Clima (Visão Geral)
-            </h3>
-          </div>
-
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={generalClimateData}
-                layout="vertical"
-                margin={{ top: 0, right: 30, left: 40, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  horizontal={false}
-                  stroke="#e2e8f0"
-                />
-                <XAxis
-                  type="number"
-                  domain={[0, 5]}
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  tick={{ fontSize: 12, fill: '#475569' }}
-                  width={120}
-                />
-                <RechartsTooltip
-                  cursor={{ fill: '#f1f5f9' }}
-                  contentStyle={{
-                    borderRadius: '8px',
-                    border: 'none',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                  }}
-                />
-                <Bar
-                  dataKey="nota"
-                  radius={[0, 4, 4, 0]}
-                  barSize={24}
-                  isAnimationActive={false}
-                >
-                  {generalClimateData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={getBarColor(entry.nota)}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <h3 className="text-lg font-bold text-slate-800 mb-4 print:mt-10 print:break-before-page">
-          Realidade Específica por Setor (Microclima)
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:grid-cols-2">
-          {sectorsAnalysis.map((sector) => (
-            <div
-              key={sector.setor}
-              className="bg-white border border-[#dce7f2] rounded-xl p-5 shadow-sm print:border-slate-300 print:shadow-none print:break-inside-avoid"
-            >
-              <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3 print:border-slate-200">
-                <h4 className="font-bold text-blue-800 print:text-slate-900">
-                  {sector.setor}
-                </h4>
-
-                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium print:border print:border-slate-300">
-                  {sector.total} respostas
-                </span>
+            <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm mb-8 print:border-slate-300 print:shadow-none print:break-inside-avoid">
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-slate-800">
+                  Mapeamento de Clima (Visão Geral)
+                </h3>
               </div>
 
-              {sector.total === 0 ? (
-                <p className="text-sm text-slate-400 italic py-4 text-center">
-                  Aguardando dados
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span
-                        className="text-slate-600 font-medium truncate pr-4"
-                        title={sector.q1Label}
-                      >
-                        {sector.q1Label}
-                      </span>
-                      <span className="font-bold text-slate-800">
-                        {sector.q1Media}
-                      </span>
-                    </div>
-
-                    <div className="w-full bg-slate-200 rounded-full h-2 print:border print:border-slate-300">
-                      <div
-                        className="h-2 rounded-full"
-                        style={{
-                          width: `${(sector.q1Media / 5) * 100}%`,
-                          backgroundColor: getBarColor(sector.q1Media)
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span
-                        className="text-slate-600 font-medium truncate pr-4"
-                        title={sector.q2Label}
-                      >
-                        {sector.q2Label}
-                      </span>
-                      <span className="font-bold text-slate-800">
-                        {sector.q2Media}
-                      </span>
-                    </div>
-
-                    <div className="w-full bg-slate-200 rounded-full h-2 print:border print:border-slate-300">
-                      <div
-                        className="h-2 rounded-full"
-                        style={{
-                          width: `${(sector.q2Media / 5) * 100}%`,
-                          backgroundColor: getBarColor(sector.q2Media)
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={generalClimateData}
+                    layout="vertical"
+                    margin={{ top: 0, right: 30, left: 40, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      horizontal={false}
+                      stroke="#e2e8f0"
+                    />
+                    <XAxis
+                      type="number"
+                      domain={[0, 5]}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      tick={{ fontSize: 12, fill: '#475569' }}
+                      width={120}
+                    />
+                    <RechartsTooltip
+                      cursor={{ fill: '#f1f5f9' }}
+                      contentStyle={{
+                        borderRadius: '8px',
+                        border: 'none',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      }}
+                    />
+                    <Bar
+                      dataKey="nota"
+                      radius={[0, 4, 4, 0]}
+                      barSize={24}
+                      isAnimationActive={false}
+                    >
+                      {generalClimateData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={getBarColor(entry.nota)}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          ))}
-        </div>
+
+            <h3 className="text-lg font-bold text-slate-800 mb-4 print:mt-10 print:break-before-page">
+              Realidade Específica por Setor (Microclima)
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:grid-cols-2">
+              {sectorsAnalysis.map((sector) => (
+                <div
+                  key={sector.setor}
+                  className="bg-white border border-[#dce7f2] rounded-xl p-5 shadow-sm print:border-slate-300 print:shadow-none print:break-inside-avoid"
+                >
+                  <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3 print:border-slate-200">
+                    <h4 className="font-bold text-blue-800 print:text-slate-900">
+                      {sector.setor}
+                    </h4>
+
+                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium print:border print:border-slate-300">
+                      {sector.total} respostas
+                    </span>
+                  </div>
+
+                  {sector.total === 0 ? (
+                    <p className="text-sm text-slate-400 italic py-4 text-center">
+                      Aguardando dados
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span
+                            className="text-slate-600 font-medium truncate pr-4"
+                            title={sector.q1Label}
+                          >
+                            {sector.q1Label}
+                          </span>
+                          <span className="font-bold text-slate-800">
+                            {sector.q1Media}
+                          </span>
+                        </div>
+
+                        <div className="w-full bg-slate-200 rounded-full h-2 print:border print:border-slate-300">
+                          <div
+                            className="h-2 rounded-full"
+                            style={{
+                              width: `${(sector.q1Media / 5) * 100}%`,
+                              backgroundColor: getBarColor(sector.q1Media)
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span
+                            className="text-slate-600 font-medium truncate pr-4"
+                            title={sector.q2Label}
+                          >
+                            {sector.q2Label}
+                          </span>
+                          <span className="font-bold text-slate-800">
+                            {sector.q2Media}
+                          </span>
+                        </div>
+
+                        <div className="w-full bg-slate-200 rounded-full h-2 print:border print:border-slate-300">
+                          <div
+                            className="h-2 rounded-full"
+                            style={{
+                              width: `${(sector.q2Media / 5) * 100}%`,
+                              backgroundColor: getBarColor(sector.q2Media)
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </main>
 
       <footer className="relative z-10 w-full border-t border-sky-100/80 bg-white/50 backdrop-blur-sm py-4 text-xs text-slate-500 mt-auto print:hidden">
