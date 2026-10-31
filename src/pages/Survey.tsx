@@ -7,6 +7,23 @@ import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import DemographicsStep from '../components/survey/DemographicsStep';
 import LikertQuestion from '../components/survey/LikertQuestion';
+import { LIKERT_OPTIONS, type LikertTone } from '../lib/likertOptions';
+
+const LEGEND_TEXT_CLASSES: Record<LikertTone, string> = {
+  red: 'text-red-700',
+  orange: 'text-orange-700',
+  amber: 'text-amber-700',
+  lime: 'text-lime-700',
+  emerald: 'text-emerald-700'
+};
+
+const LEGEND_DOT_CLASSES: Record<LikertTone, string> = {
+  red: 'bg-red-400',
+  orange: 'bg-orange-400',
+  amber: 'bg-amber-400',
+  lime: 'bg-lime-400',
+  emerald: 'bg-emerald-500'
+};
 
 const LIKERT_QUESTIONS = [
   {
@@ -308,27 +325,15 @@ export default function Survey() {
                 Indique o quanto você concorda com cada afirmação.
               </p>
 
-              <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200/70 hidden sm:flex items-center justify-between text-xs text-slate-600 font-medium">
-                <div className="flex items-center gap-2 text-rose-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-400" />
-                  <span>1 = Discordo Totalmente</span>
-                </div>
-                <div className="flex items-center gap-2 text-amber-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                  <span>2 = Discordo Parcialmente</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-600">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
-                  <span>3 = Neutro</span>
-                </div>
-                <div className="flex items-center gap-2 text-sky-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
-                  <span>4 = Concordo Parcialmente</span>
-                </div>
-                <div className="flex items-center gap-2 text-emerald-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  <span>5 = Concordo Totalmente</span>
-                </div>
+              <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200/70 hidden sm:flex items-center justify-between text-xs font-medium">
+                {LIKERT_OPTIONS.map((opt) => (
+                  <div key={opt.value} className={`flex items-center gap-2 ${LEGEND_TEXT_CLASSES[opt.tone]}`}>
+                    <span className={`w-2.5 h-2.5 rounded-full ${LEGEND_DOT_CLASSES[opt.tone]}`} />
+                    <span>
+                      {opt.value} = {opt.label}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
