@@ -1,11 +1,13 @@
 // src/pages/SignUp.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import PageBackground from '../components/layout/PageBackground';
 import AppHeader from '../components/layout/AppHeader';
 import Button from '../components/ui/Button';
+import PasswordChecklist from '../components/ui/PasswordChecklist';
+import { isEmailValid, isPasswordValid } from '../lib/passwordRules';
 
 function getSignUpErrorMessage(error: unknown): string {
   const code = (error as { code?: string })?.code;
@@ -22,16 +24,49 @@ function getSignUpErrorMessage(error: unknown): string {
   }
 }
 
+type Field = 'companyName' | 'email' | 'password';
+
 export default function SignUp() {
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [touched, setTouched] = useState<Record<Field, boolean>>({
+    companyName: false,
+    email: false,
+    password: false
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+
+  const companyNameError =
+    touched.companyName && !companyName.trim() ? 'Informe o nome da empresa.' : '';
+  const emailError =
+    touched.email && !isEmailValid(email) ? 'Digite um e-mail válido.' : '';
+  const passwordError =
+    touched.password && !isPasswordValid(password)
+      ? 'A senha não atende aos critérios abaixo.'
+      : '';
+
+  const markTouched = (field: Field) => setTouched((prev) => ({ ...prev, [field]: true }));
+
+  const inputClass = (hasError: boolean) =>
+    `block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-sky-50/30 text-slate-900 focus:ring-2 disabled:opacity-50 ${
+      hasError
+        ? 'border-red-300 focus:ring-red-400 bg-red-50/40'
+        : 'border-slate-200 focus:ring-blue-500'
+    }`;
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setTouched({ companyName: true, email: true, password: true });
+
+    if (!companyName.trim() || !isEmailValid(email) || !isPasswordValid(password)) {
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
@@ -58,7 +93,11 @@ export default function SignUp() {
         throw new Error('Não foi possível criar o perfil da empresa.');
       }
 
-      navigate('/admin/dashboard');
+      setSuccess(true);
+
+      setTimeout(() => {
+        void signOut(auth).finally(() => navigate('/login'));
+      }, 2000);
     } catch (err) {
       console.error('Erro ao cadastrar empresa:', err);
       setError(
@@ -81,49 +120,94 @@ export default function SignUp() {
           <section className="bg-white rounded-2xl sm:rounded-3xl border border-sky-100 shadow-[0_10px_30px_-5px_rgba(27,54,93,0.07)] p-7 sm:p-9 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-400 via-blue-600 to-sky-400"></div>
 
-            <div className="text-center mb-7 mt-2">
-              <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-inner mb-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+            {success ? (
+              <div className="text-center py-6 animate-[fadeIn_0.3s_ease-out]">
+                <div className="mx-auto w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shadow-inner mb-5">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <h1 className="text-2xl font-bold text-slate-800 tracking-tight mb-2">
+                  Cadastro concluído!
+                </h1>
+                <p className="text-sm text-slate-500">
+                  Sua empresa foi criada com sucesso. Redirecionando para o login...
+                </p>
               </div>
-              <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Cadastre sua Empresa</h1>
-              <p className="text-sm text-slate-500 mt-2">
-                Crie sua conta para gerar o link da pesquisa e acessar o painel de BI.
-              </p>
-            </div>
+            ) : (
+              <>
+                <div className="text-center mb-7 mt-2">
+                  <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-inner mb-4">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                  </div>
+                  <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Cadastre sua Empresa</h1>
+                  <p className="text-sm text-slate-500 mt-2">
+                    Crie sua conta para gerar o link da pesquisa e acessar o painel de BI.
+                  </p>
+                </div>
 
-            {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}
+                {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}
 
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Nome da empresa</label>
-                <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required disabled={isLoading} className="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">E-mail</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Senha</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} disabled={isLoading} className="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
-              </div>
+                <form onSubmit={handleSignUp} noValidate className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Nome da empresa</label>
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      onBlur={() => markTouched('companyName')}
+                      disabled={isLoading}
+                      className={inputClass(!!companyNameError)}
+                    />
+                    {companyNameError && (
+                      <p className="mt-1.5 text-xs text-red-600">{companyNameError}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">E-mail</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onBlur={() => markTouched('email')}
+                      disabled={isLoading}
+                      className={inputClass(!!emailError)}
+                    />
+                    {emailError && <p className="mt-1.5 text-xs text-red-600">{emailError}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Senha</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onBlur={() => markTouched('password')}
+                      disabled={isLoading}
+                      className={inputClass(!!passwordError)}
+                    />
+                    {passwordError && <p className="mt-1.5 text-xs text-red-600">{passwordError}</p>}
+                    <PasswordChecklist password={password} />
+                  </div>
 
-              <div className="pt-2">
-                <Button type="submit" variant="dark" loading={isLoading} className="w-full py-2.5">
-                  {isLoading ? 'Criando conta...' : 'Criar conta e gerar link'}
-                </Button>
-              </div>
-            </form>
+                  <div className="pt-2">
+                    <Button type="submit" variant="dark" loading={isLoading} className="w-full py-2.5">
+                      {isLoading ? 'Criando conta...' : 'Criar conta e gerar link'}
+                    </Button>
+                  </div>
+                </form>
 
-            <p className="text-center text-xs text-slate-500 mt-6">
-              Já tem conta?{' '}
-              <button
-                type="button"
-                onClick={() => navigate('/login')}
-                className="font-semibold text-blue-600 hover:text-blue-700"
-              >
-                Entrar
-              </button>
-            </p>
+                <p className="text-center text-xs text-slate-500 mt-6">
+                  Já tem conta?{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/login')}
+                    className="font-semibold text-blue-600 hover:text-blue-700"
+                  >
+                    Entrar
+                  </button>
+                </p>
+              </>
+            )}
           </section>
         </div>
       </main>
