@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
+import PageBackground from '../components/layout/PageBackground';
+import AppHeader from '../components/layout/AppHeader';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 
 function getLoginErrorMessage(error: unknown): string {
   const code = (error as { code?: string })?.code;
@@ -43,34 +47,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f6fb] flex flex-col justify-between text-slate-700 antialiased font-sans animate-[fadeIn_0.3s_ease-out]">
-      <div className="absolute inset-0 z-0 pointer-events-none" style={{
-        backgroundImage: `radial-gradient(at 0% 0%, rgba(219, 234, 254, 0.6) 0px, transparent 50%),
-                          radial-gradient(at 100% 0%, rgba(224, 242, 254, 0.5) 0px, transparent 50%),
-                          radial-gradient(at 50% 100%, rgba(219, 234, 254, 0.4) 0px, transparent 50%)`
-      }}></div>
-
-      <header className="relative z-30 w-full border-b border-sky-100/70 bg-white/75 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center shadow-sm">
-                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M5 17c0-3.87 3.13-7 7-7s7 3.13 7 7" /><path d="M8.5 17c0-1.93 1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5" /><circle cx="12" cy="17" r="1.5" fill="currentColor" stroke="none" />
-                </svg>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold tracking-tight text-slate-800 leading-tight">Atmos</span>
-                <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase">Diagnóstico & BI</span>
-              </div>
-            </div>
-            <span className="hidden sm:inline-block h-5 w-[1px] bg-slate-200"></span>
-            <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
-              Módulo de Gestão & BI
-            </span>
-          </div>
-        </div>
-      </header>
+    <PageBackground variant="auth" className="justify-between">
+      <AppHeader
+        onLogoClick={() => navigate('/')}
+        badge={
+          <>
+            <span className="hidden sm:inline-block h-5 w-[1px] bg-slate-200 ml-2 mr-1"></span>
+            <Badge tone="blue">Módulo de Gestão &amp; BI</Badge>
+          </>
+        }
+      />
 
       <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-6 py-10 lg:py-14">
         <div className="w-full max-w-md">
@@ -102,13 +88,14 @@ export default function Login() {
               </div>
 
               <div className="pt-2">
-                <button type="submit" disabled={isLoading} className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-white font-medium text-sm bg-[#162235] hover:bg-slate-900 shadow-md transition-all disabled:opacity-80 disabled:cursor-not-allowed">
-                  {isLoading ? (
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  ) : (
-                    <><span>Entrar no Painel BI</span><svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round"></path></svg></>
+                <Button type="submit" variant="dark" loading={isLoading} className="w-full py-2.5">
+                  {!isLoading && (
+                    <>
+                      <span>Entrar no Painel BI</span>
+                      <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                    </>
                   )}
-                </button>
+                </Button>
               </div>
             </form>
 
@@ -125,6 +112,6 @@ export default function Login() {
           </section>
         </div>
       </main>
-    </div>
+    </PageBackground>
   );
 }

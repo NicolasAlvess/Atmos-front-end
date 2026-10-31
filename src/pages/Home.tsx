@@ -1,6 +1,9 @@
 // src/pages/Home.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PageBackground from '../components/layout/PageBackground';
+import AppHeader from '../components/layout/AppHeader';
+import Button from '../components/ui/Button';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -15,48 +18,20 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f8fc] flex flex-col font-sans text-slate-800 antialiased animate-[fadeIn_0.4s_ease-out]">
-      
-      {/* Background Mesh Gradient */}
-      <div className="fixed inset-0 z-0 pointer-events-none" style={{
-        backgroundImage: `radial-gradient(at 0% 0%, rgba(219, 234, 254, 0.4) 0px, transparent 50%),
-                          radial-gradient(at 100% 0%, rgba(224, 242, 254, 0.3) 0px, transparent 50%)`
-      }}></div>
+    <PageBackground>
+      <AppHeader
+        right={
+          <button
+            onClick={() => navigate('/login')}
+            className="text-xs font-semibold text-slate-500 hover:text-blue-600 transition px-2 py-1"
+          >
+            Acesso Restrito
+          </button>
+        }
+      />
 
-      {/* Cabeçalho Atmos */}
-      <header className="relative z-40 bg-white/95 backdrop-blur-md border-b border-[#dce7f2] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {/* Ícone Atmos */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center shadow-sm">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M5 17c0-3.87 3.13-7 7-7s7 3.13 7 7" />
-                <path d="M8.5 17c0-1.93 1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5" />
-                <circle cx="12" cy="17" r="1.5" fill="currentColor" stroke="none" />
-              </svg>
-            </div>
-            {/* Nome e Badge */}
-            <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight text-slate-800 leading-tight">Atmos</span>
-              <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase">Diagnóstico & BI</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => navigate('/login')} 
-              className="text-xs font-semibold text-slate-500 hover:text-blue-600 transition px-2 py-1"
-            >
-              Acesso Restrito
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Conteúdo Principal */}
       <main className="relative z-10 flex-grow flex items-center justify-center p-4 sm:p-6 my-8">
         <div className="max-w-2xl w-full bg-white rounded-2xl border border-sky-100 shadow-[0_10px_30px_-5px_rgba(27,54,93,0.07)] p-8 sm:p-10 min-h-[450px] flex flex-col justify-center">
-          
           {isNavigating ? (
             // Card Dinâmico de Carregamento
             <div className="flex flex-col items-center justify-center py-10 animate-[fadeIn_0.3s_ease-out]">
@@ -100,15 +75,12 @@ export default function Home() {
                 </p>
               </div>
 
-              <button
-                onClick={handleStart}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
+              <Button onClick={handleStart} className="w-full py-3.5">
                 <span>Cadastrar minha Empresa</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                 </svg>
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -128,6 +100,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+    </PageBackground>
   );
 }

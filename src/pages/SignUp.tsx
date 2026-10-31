@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
+import PageBackground from '../components/layout/PageBackground';
+import AppHeader from '../components/layout/AppHeader';
+import Button from '../components/ui/Button';
 
 function getSignUpErrorMessage(error: unknown): string {
   const code = (error as { code?: string })?.code;
@@ -39,25 +42,17 @@ export default function SignUp() {
         throw new Error('A variável VITE_API_URL não está configurada.');
       }
 
-      const credential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
       const idToken = await credential.user.getIdToken();
 
-      const response = await fetch(
-        `${apiUrl.replace(/\/$/, '')}/api/companies`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${idToken}`
-          },
-          body: JSON.stringify({ name: companyName })
-        }
-      );
+      const response = await fetch(`${apiUrl.replace(/\/$/, '')}/api/companies`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ name: companyName })
+      });
 
       if (!response.ok) {
         throw new Error('Não foi possível criar o perfil da empresa.');
@@ -78,28 +73,8 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f6fb] flex flex-col justify-between text-slate-700 antialiased font-sans animate-[fadeIn_0.3s_ease-out]">
-      <div className="absolute inset-0 z-0 pointer-events-none" style={{
-        backgroundImage: `radial-gradient(at 0% 0%, rgba(219, 234, 254, 0.6) 0px, transparent 50%),
-                          radial-gradient(at 100% 0%, rgba(224, 242, 254, 0.5) 0px, transparent 50%),
-                          radial-gradient(at 50% 100%, rgba(219, 234, 254, 0.4) 0px, transparent 50%)`
-      }}></div>
-
-      <header className="relative z-30 w-full border-b border-sky-100/70 bg-white/75 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center shadow-sm">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M5 17c0-3.87 3.13-7 7-7s7 3.13 7 7" /><path d="M8.5 17c0-1.93 1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5" /><circle cx="12" cy="17" r="1.5" fill="currentColor" stroke="none" />
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight text-slate-800 leading-tight">Atmos</span>
-              <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase">Diagnóstico & BI</span>
-            </div>
-          </div>
-        </div>
-      </header>
+    <PageBackground variant="auth" className="justify-between">
+      <AppHeader onLogoClick={() => navigate('/')} />
 
       <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-6 py-10 lg:py-14">
         <div className="w-full max-w-md">
@@ -133,9 +108,9 @@ export default function SignUp() {
               </div>
 
               <div className="pt-2">
-                <button type="submit" disabled={isLoading} className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-white font-medium text-sm bg-[#162235] hover:bg-slate-900 shadow-md transition-all disabled:opacity-80 disabled:cursor-not-allowed">
+                <Button type="submit" variant="dark" loading={isLoading} className="w-full py-2.5">
                   {isLoading ? 'Criando conta...' : 'Criar conta e gerar link'}
-                </button>
+                </Button>
               </div>
             </form>
 
@@ -152,6 +127,6 @@ export default function SignUp() {
           </section>
         </div>
       </main>
-    </div>
+    </PageBackground>
   );
 }
