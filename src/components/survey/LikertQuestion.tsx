@@ -3,28 +3,28 @@ import { LIKERT_OPTIONS, type LikertTone } from '../../lib/likertOptions';
 const TONE_CLASSES: Record<LikertTone, { label: string; number: string }> = {
   red: {
     label:
-      'peer-checked:border-red-300 peer-checked:bg-red-50 peer-checked:text-red-700 peer-checked:ring-1 peer-checked:ring-red-300',
-    number: 'peer-checked:text-red-600'
+      'border-red-200 peer-checked:border-red-300 peer-checked:bg-red-50 peer-checked:text-red-700 peer-checked:ring-1 peer-checked:ring-red-300',
+    number: 'text-red-500 peer-checked:text-red-600'
   },
   orange: {
     label:
-      'peer-checked:border-orange-300 peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:ring-1 peer-checked:ring-orange-300',
-    number: 'peer-checked:text-orange-600'
+      'border-orange-200 peer-checked:border-orange-300 peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:ring-1 peer-checked:ring-orange-300',
+    number: 'text-orange-500 peer-checked:text-orange-600'
   },
   amber: {
     label:
-      'peer-checked:border-amber-300 peer-checked:bg-amber-50 peer-checked:text-amber-700 peer-checked:ring-1 peer-checked:ring-amber-300',
-    number: 'peer-checked:text-amber-600'
+      'border-amber-200 peer-checked:border-amber-300 peer-checked:bg-amber-50 peer-checked:text-amber-700 peer-checked:ring-1 peer-checked:ring-amber-300',
+    number: 'text-amber-500 peer-checked:text-amber-600'
   },
   lime: {
     label:
-      'peer-checked:border-lime-300 peer-checked:bg-lime-50 peer-checked:text-lime-700 peer-checked:ring-1 peer-checked:ring-lime-300',
-    number: 'peer-checked:text-lime-600'
+      'border-lime-200 peer-checked:border-lime-300 peer-checked:bg-lime-50 peer-checked:text-lime-700 peer-checked:ring-1 peer-checked:ring-lime-300',
+    number: 'text-lime-600 peer-checked:text-lime-600'
   },
   emerald: {
     label:
-      'peer-checked:border-emerald-300 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 peer-checked:ring-1 peer-checked:ring-emerald-300',
-    number: 'peer-checked:text-emerald-600'
+      'border-emerald-200 peer-checked:border-emerald-300 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 peer-checked:ring-1 peer-checked:ring-emerald-300',
+    number: 'text-emerald-500 peer-checked:text-emerald-600'
   }
 };
 
@@ -72,11 +72,9 @@ export default function LikertQuestion({
                 />
                 <label
                   htmlFor={`${name}_${opt.value}`}
-                  className={`flex sm:flex-col items-center justify-between sm:justify-center p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer text-center text-xs font-semibold text-slate-700 transition ${tone.label}`}
+                  className={`flex sm:flex-col items-center justify-between sm:justify-center p-3 rounded-xl border bg-white hover:bg-slate-50 cursor-pointer text-center text-xs font-semibold text-slate-700 transition ${tone.label}`}
                 >
-                  <span className={`text-slate-400 sm:mb-1 font-bold ${tone.number}`}>
-                    {opt.value}
-                  </span>
+                  <span className={`sm:mb-1 font-bold ${tone.number}`}>{opt.value}</span>
                   <span className="text-[10px] sm:text-xs leading-tight">{opt.label}</span>
                 </label>
               </div>
