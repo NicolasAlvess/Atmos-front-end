@@ -67,7 +67,7 @@ export default function Login() {
               <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 mb-4">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeLinecap="round" strokeLinejoin="round"></path></svg>
               </div>
-              <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Acesso da Empresa</h1>
+              <h1 className="font-display text-2xl font-semibold text-slate-800 tracking-tight">Acesso da Empresa</h1>
             </div>
 
             {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}

@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react';
 
-type Variant = 'primary' | 'dark' | 'secondary' | 'outline';
+type Variant = 'primary' | 'dark' | 'secondary' | 'outline' | 'celebrate';
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
@@ -8,7 +8,9 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   dark: 'bg-gradient-to-r from-[#162235] to-[#1e2a44] hover:from-slate-900 hover:to-[#1b2740] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5',
   secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-600',
   outline:
-    'bg-white border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 shadow-sm'
+    'bg-white border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 shadow-sm',
+  celebrate:
+    'bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white shadow-md shadow-rose-500/25 hover:shadow-lg hover:shadow-rose-500/30 hover:-translate-y-0.5 focus:ring-2 focus:ring-rose-400 focus:ring-offset-2'
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

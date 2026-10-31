@@ -256,7 +256,7 @@ export default function Dashboard() {
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 print:mb-8">
           <div className="print:hidden">
-            <h1 className="text-2xl font-bold text-slate-900">Diagnóstico Organizacional</h1>
+            <h1 className="font-display text-2xl font-semibold text-slate-900">Diagnóstico Organizacional</h1>
             <p className="text-sm text-slate-500 mt-1">
               Análise consolidada das médias de satisfação (Escala 1 a 5).
             </p>

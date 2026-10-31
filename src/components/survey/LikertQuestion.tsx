@@ -44,7 +44,7 @@ export default function LikertQuestion({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
-    <article className="p-5 sm:p-6 rounded-xl border border-slate-200 hover:border-blue-200 bg-[#fbfdff] transition-all">
+    <article className="p-5 sm:p-6 rounded-xl border border-slate-200 hover:border-blue-200 bg-[#fbfdff] transition-all hover:shadow-sm sm:hover:scale-[1.01]">
       <div className="flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-bold text-xs">

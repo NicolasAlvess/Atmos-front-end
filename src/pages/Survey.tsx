@@ -7,6 +7,7 @@ import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import DemographicsStep from '../components/survey/DemographicsStep';
 import LikertQuestion from '../components/survey/LikertQuestion';
+import SurveyProgress from '../components/survey/SurveyProgress';
 import SlowLoadingNotice from '../components/ui/SlowLoadingNotice';
 import { useSlowLoading } from '../hooks/useSlowLoading';
 import { LIKERT_OPTIONS, type LikertTone } from '../lib/likertOptions';
@@ -207,6 +208,16 @@ export default function Survey() {
   };
 
   const currentSectorQuestions = SECTOR_SPECIFIC_QUESTIONS[formData.setor] || [];
+  const allFieldNames = [
+    'tempo_empresa',
+    'setor',
+    'faixa_etaria',
+    'genero',
+    'raca_cor',
+    ...LIKERT_QUESTIONS.map((q) => q.name),
+    ...currentSectorQuestions.map((q) => q.name)
+  ];
+  const answeredFields = allFieldNames.filter((name) => formData[name]).length;
   const isResolvingCompanySlowly = useSlowLoading(companyStatus === 'loading');
   const isSubmittingSlowly = useSlowLoading(isSubmitting);
 
@@ -262,7 +273,7 @@ export default function Survey() {
               <p className="text-[11px] text-slate-500 leading-tight hidden sm:block">
                 Questionário de Clima &amp; Inclusão
               </p>
-              <h1 className="text-base font-bold text-slate-800 leading-tight truncate">
+              <h1 className="font-display text-base font-semibold text-slate-800 leading-tight truncate">
                 <span className="sm:hidden">{companyName}</span>
                 <span className="hidden sm:inline">
                   Questionário de Clima &amp; Inclusão — {companyName}
@@ -294,6 +305,8 @@ export default function Survey() {
           </div>
         </div>
       </header>
+
+      <SurveyProgress answered={answeredFields} total={allFieldNames.length} />
 
       {/* Conteúdo Principal */}
       <main className="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
@@ -419,6 +432,7 @@ export default function Survey() {
 
             <Button
               type="submit"
+              variant="celebrate"
               loading={isSubmitting}
               className="w-full sm:w-auto py-3"
             >

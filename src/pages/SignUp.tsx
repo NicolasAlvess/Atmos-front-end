@@ -125,13 +125,13 @@ export default function SignUp() {
 
             {success ? (
               <div className="text-center py-6 animate-[fadeIn_0.3s_ease-out]">
-                <div className="mx-auto w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shadow-inner mb-5">
+                <div className="animate-pop mx-auto w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 mb-5">
                   <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
                   </svg>
                 </div>
-                <h1 className="text-2xl font-bold text-slate-800 tracking-tight mb-2">
-                  Cadastro concluído!
+                <h1 className="font-display text-2xl font-semibold text-slate-800 tracking-tight mb-2">
+                  Cadastro concluído! 🎉
                 </h1>
                 <p className="text-sm text-slate-500">
                   Sua empresa foi criada com sucesso. Redirecionando para o login...
@@ -143,7 +143,7 @@ export default function SignUp() {
                   <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 mb-4">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                   </div>
-                  <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Cadastre sua Empresa</h1>
+                  <h1 className="font-display text-2xl font-semibold text-slate-800 tracking-tight">Cadastre sua Empresa</h1>
                   <p className="text-sm text-slate-500 mt-2">
                     Crie sua conta para gerar o link da pesquisa e acessar o painel de BI.
                   </p>

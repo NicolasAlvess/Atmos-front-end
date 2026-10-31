@@ -23,11 +23,13 @@ export default function AppHeader({
           className={`flex items-center space-x-3 min-w-0 ${onLogoClick ? 'cursor-pointer' : ''}`}
           onClick={onLogoClick}
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm shrink-0">
+          <div
+            className={`w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm shrink-0 transition-transform ${onLogoClick ? 'hover:scale-105 hover:rotate-3' : ''}`}
+          >
             <AtmosLogo />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-lg font-bold tracking-tight text-slate-800 leading-tight truncate">
+            <span className="font-display text-lg font-semibold tracking-tight text-slate-800 leading-tight truncate">
               {title}
             </span>
             <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase">
