@@ -17,6 +17,7 @@ import InterventionPlanList, {
   type InterventionAction
 } from '../components/dashboard/InterventionPlanList';
 import SectorBreakdown, { type SectorAnalysis } from '../components/dashboard/SectorBreakdown';
+import { PUBLIC_SITE_URL } from '../lib/siteUrl';
 
 interface ResponseData {
   id: string;
@@ -178,7 +179,7 @@ export default function Dashboard() {
     }
   ];
 
-  const surveyLink = company ? `${window.location.origin}/survey/${company.slug}` : '';
+  const surveyLink = company ? `${PUBLIC_SITE_URL}/survey/${company.slug}` : '';
 
   const handleCopyLink = async () => {
     if (!surveyLink) return;
