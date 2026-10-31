@@ -1,9 +1,46 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function Survey() {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+
+  const [companyName, setCompanyName] = useState('');
+  const [companyStatus, setCompanyStatus] = useState<
+    'loading' | 'ready' | 'not_found'
+  >('loading');
+
+  useEffect(() => {
+    const resolveCompany = async () => {
+      const apiUrl = import.meta.env.VITE_API_URL;
+
+      if (!apiUrl || !slug) {
+        setCompanyStatus('not_found');
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${apiUrl.replace(/\/$/, '')}/api/companies/${slug}`
+        );
+
+        if (!response.ok) {
+          setCompanyStatus('not_found');
+          return;
+        }
+
+        const company = await response.json();
+        setCompanyName(company.name);
+        setCompanyStatus('ready');
+      } catch (error) {
+        console.error('Erro ao validar o link da pesquisa:', error);
+        setCompanyStatus('not_found');
+      }
+    };
+
+    void resolveCompany();
+  }, [slug]);
 
   const [formData, setFormData] = useState<Record<string, string>>({
     tempo_empresa: '',
@@ -43,7 +80,7 @@ export default function Survey() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({ ...formData, slug })
         }
       );
 
@@ -180,6 +217,36 @@ export default function Survey() {
     { value: '5', label: 'Concordo Totalmente' }
   ];
 
+  if (companyStatus === 'loading') {
+    return (
+      <div className="min-h-screen bg-[#f4f8fc] flex items-center justify-center text-slate-500 text-sm">
+        Carregando pesquisa...
+      </div>
+    );
+  }
+
+  if (companyStatus === 'not_found') {
+    return (
+      <div className="min-h-screen bg-[#f4f8fc] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
+          <h1 className="text-xl font-bold text-slate-800 mb-3">
+            Link de pesquisa inválido
+          </h1>
+          <p className="text-sm text-slate-500 mb-6">
+            Este link não corresponde a nenhuma pesquisa ativa. Verifique com
+            a sua empresa se o endereço está correto.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition"
+          >
+            Voltar ao início
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f4f8fc] font-sans text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900 flex flex-col animate-[fadeIn_0.4s_ease-out]">
       {/* Cabeçalho */}
@@ -219,7 +286,7 @@ export default function Survey() {
               </div>
 
               <h1 className="text-base font-bold text-slate-800 leading-tight">
-                Questionário de Clima &amp; Inclusão
+                Questionário de Clima &amp; Inclusão — {companyName}
               </h1>
             </div>
           </div>

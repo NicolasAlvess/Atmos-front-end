@@ -10,8 +10,8 @@ export default function Home() {
     setIsNavigating(true);
     // Aumentamos o tempo para 1.5s para a animação do card ser apreciada
     setTimeout(() => {
-      navigate('/survey');
-    }, 1500); 
+      navigate('/signup');
+    }, 1500);
   };
 
   return (
@@ -84,33 +84,27 @@ export default function Home() {
                   </svg>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">
-                  Pesquisa de Clima e Inclusão
+                  Diagnóstico de Clima Organizacional
                 </h1>
               </div>
-              
+
               <div className="text-slate-600 space-y-4 mb-8 text-sm sm:text-base leading-relaxed bg-slate-50 p-6 rounded-xl border border-slate-100">
                 <p>
-                  <strong className="text-slate-800">Bem-vindo(a) à nossa Pesquisa Organizacional.</strong>
+                  <strong className="text-slate-800">Bem-vindo(a) à Atmos.</strong>
                 </p>
                 <p>
-                  Esta pesquisa tem um propósito estritamente acadêmico e diagnóstico, visando entender como as práticas de gestão de pessoas impactam o ambiente de trabalho, as relações interpessoais e a inclusão na nossa empresa.
+                  Cadastre sua empresa para gerar um link exclusivo de pesquisa, enviá-lo aos colaboradores e acompanhar em tempo real o diagnóstico de clima e inclusão da sua organização.
                 </p>
                 <p>
-                  A sua participação é voluntária. Garantimos o <strong className="text-blue-700">absoluto anonimato e sigilo</strong> das suas respostas; não coletaremos seu nome, e-mail ou qualquer dado de identificação direta. Os dados sociodemográficos solicitados serão analisados apenas em bloco.
+                  As respostas dos colaboradores são <strong className="text-blue-700">100% anônimas</strong> e os dados de cada empresa ficam isolados e visíveis apenas para ela. O sistema gera automaticamente um diagnóstico e um plano de intervenção fundamentado em teorias científicas de gestão (Vroom, Herzberg, Maslow e Hackman & Oldham).
                 </p>
-                <div className="flex items-start gap-2 mt-4 pt-4 border-t border-slate-200 text-xs sm:text-sm italic text-slate-500">
-                  <svg className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <p>Ao clicar no botão abaixo, você confirma que compreende o propósito do estudo e concorda em participar de forma livre e esclarecida.</p>
-                </div>
               </div>
 
-              <button 
+              <button
                 onClick={handleStart}
                 className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                <span>Compreendo e Quero Iniciar a Pesquisa</span>
+                <span>Cadastrar minha Empresa</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                 </svg>

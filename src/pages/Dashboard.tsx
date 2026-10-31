@@ -1,6 +1,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import {
   BarChart,
   Bar,
@@ -11,6 +12,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import { auth } from '../firebase';
 
 interface ResponseData {
   id: string;
@@ -19,15 +21,50 @@ interface ResponseData {
   [key: string]: string;
 }
 
+interface CompanyInfo {
+  companyId: string;
+  name: string;
+  slug: string;
+}
+
+interface DimensionDiagnosis {
+  key: string;
+  nome: string;
+  nota: number;
+  classificacao: 'critico' | 'alerta' | 'forte' | 'sem_dados';
+  teoria: string;
+  diagnostico: string;
+}
+
+interface InterventionAction {
+  dimensao: string;
+  teoria: string;
+  prazo: string;
+  acao: string;
+}
+
+interface DiagnosisData {
+  totalRespostas: number;
+  mediaGeral: number;
+  pontoForte: { dimensao: string; nota: number } | null;
+  pontoCritico: { dimensao: string; nota: number } | null;
+  resumoExecutivo: string;
+  dimensoes: DimensionDiagnosis[];
+  planoIntervencao: InterventionAction[];
+}
+
 const API_URL = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '');
 
 export default function Dashboard() {
   const [data, setData] = useState<ResponseData[]>([]);
+  const [company, setCompany] = useState<CompanyInfo | null>(null);
+  const [diagnosis, setDiagnosis] = useState<DiagnosisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [linkCopied, setLinkCopied] = useState(false);
   const navigate = useNavigate();
 
-  const fetchResponses = useCallback(async () => {
+  const fetchAll = useCallback(async (user: User) => {
     if (!API_URL) {
       setErrorMessage(
         'A variável VITE_API_URL não está configurada. Verifique as variáveis de ambiente da Vercel e faça um novo deploy.'
@@ -40,20 +77,27 @@ export default function Dashboard() {
     setErrorMessage('');
 
     try {
-      const response = await fetch(`${API_URL}/api/admin/responses`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json'
-        }
-      });
+      const idToken = await user.getIdToken();
+      const headers = {
+        Accept: 'application/json',
+        Authorization: `Bearer ${idToken}`
+      };
 
-      if (!response.ok) {
+      const [responsesRes, companyRes, diagnosisRes] = await Promise.all([
+        fetch(`${API_URL}/api/admin/responses`, { headers }),
+        fetch(`${API_URL}/api/admin/company`, { headers }),
+        fetch(`${API_URL}/api/admin/diagnosis`, { headers })
+      ]);
+
+      if (!responsesRes.ok || !companyRes.ok || !diagnosisRes.ok) {
         throw new Error(
-          `O servidor retornou o erro HTTP ${response.status}.`
+          `O servidor retornou um erro ao carregar os dados do painel.`
         );
       }
 
-      const responses: unknown = await response.json();
+      const responses: unknown = await responsesRes.json();
+      const companyInfo: CompanyInfo = await companyRes.json();
+      const diagnosisData: DiagnosisData = await diagnosisRes.json();
 
       if (!Array.isArray(responses)) {
         throw new Error(
@@ -62,13 +106,15 @@ export default function Dashboard() {
       }
 
       setData(responses as ResponseData[]);
+      setCompany(companyInfo);
+      setDiagnosis(diagnosisData);
     } catch (error) {
-      console.error('Erro ao buscar respostas da API:', error);
+      console.error('Erro ao buscar dados do painel:', error);
 
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : 'Não foi possível carregar as respostas.'
+          : 'Não foi possível carregar os dados.'
       );
     } finally {
       setLoading(false);
@@ -76,14 +122,16 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      void fetchResponses();
-    }, 0);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        void fetchAll(user);
+      } else {
+        navigate('/login');
+      }
+    });
 
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [fetchResponses]);
+    return () => unsubscribe();
+  }, [fetchAll, navigate]);
 
   const calcAverage = (
     dataset: ResponseData[],
@@ -111,61 +159,15 @@ export default function Dashboard() {
   };
 
   const generalClimateData = [
-    {
-      name: 'Pertencimento',
-      nota: calcAverage(data, 'q1_pertencimento')
-    },
-    {
-      name: 'Valorização',
-      nota: calcAverage(data, 'q2_valorizacao')
-    },
-    {
-      name: 'Segurança Psicológica',
-      nota: calcAverage(data, 'q3_seguranca')
-    },
-    {
-      name: 'Respeito/Diversidade',
-      nota: calcAverage(data, 'q4_respeito')
-    },
-    {
-      name: 'Equidade',
-      nota: calcAverage(data, 'q5_equidade')
-    },
-    {
-      name: 'Capacitação',
-      nota: calcAverage(data, 'q6_capacitacao')
-    },
-    {
-      name: 'Comunicação',
-      nota: calcAverage(data, 'q7_comunicacao')
-    },
-    {
-      name: 'Liderança',
-      nota: calcAverage(data, 'q8_lideranca')
-    }
+    { name: 'Pertencimento', nota: calcAverage(data, 'q1_pertencimento') },
+    { name: 'Valorização', nota: calcAverage(data, 'q2_valorizacao') },
+    { name: 'Segurança Psicológica', nota: calcAverage(data, 'q3_seguranca') },
+    { name: 'Respeito/Diversidade', nota: calcAverage(data, 'q4_respeito') },
+    { name: 'Equidade', nota: calcAverage(data, 'q5_equidade') },
+    { name: 'Capacitação', nota: calcAverage(data, 'q6_capacitacao') },
+    { name: 'Comunicação', nota: calcAverage(data, 'q7_comunicacao') },
+    { name: 'Liderança', nota: calcAverage(data, 'q8_lideranca') }
   ];
-
-  const answeredDimensions = generalClimateData.filter(
-    (item) => item.nota > 0
-  );
-
-  const mediaGeral =
-    answeredDimensions.length > 0
-      ? (
-          answeredDimensions.reduce(
-            (acc, item) => acc + item.nota,
-            0
-          ) / answeredDimensions.length
-        ).toFixed(1)
-      : '0.0';
-
-  const pontoForte = [...answeredDimensions].sort(
-    (a, b) => b.nota - a.nota
-  )[0];
-
-  const pontoCritico = [...answeredDimensions].sort(
-    (a, b) => a.nota - b.nota
-  )[0];
 
   const getSectorAverages = (
     sectorName: string,
@@ -186,11 +188,7 @@ export default function Dashboard() {
   const sectorsAnalysis = [
     {
       setor: 'Operacional',
-      ...getSectorAverages(
-        'Operacional',
-        'q_op_1',
-        'q_op_2'
-      ),
+      ...getSectorAverages('Operacional', 'q_op_1', 'q_op_2'),
       q1Label: 'Condições Físicas e Segurança',
       q2Label: 'Ferramentas e Orientações'
     },
@@ -206,21 +204,13 @@ export default function Dashboard() {
     },
     {
       setor: 'Comercial / Vendas',
-      ...getSectorAverages(
-        'Comercial / Vendas',
-        'q_com_1',
-        'q_com_2'
-      ),
+      ...getSectorAverages('Comercial / Vendas', 'q_com_1', 'q_com_2'),
       q1Label: 'Metas e Distribuição Justa',
       q2Label: 'Suporte contra Pressão'
     },
     {
       setor: 'Liderança / Gestão',
-      ...getSectorAverages(
-        'Liderança / Gestão',
-        'q_lid_1',
-        'q_lid_2'
-      ),
+      ...getSectorAverages('Liderança / Gestão', 'q_lid_1', 'q_lid_2'),
       q1Label: 'Autonomia para Inclusão',
       q2Label: 'Preparo para Mediar Conflitos'
     }
@@ -232,8 +222,44 @@ export default function Dashboard() {
     return '#ef4444';
   };
 
+  const getClassificationBadge = (
+    classificacao: DimensionDiagnosis['classificacao']
+  ) => {
+    switch (classificacao) {
+      case 'forte':
+        return { label: 'Ponto Forte', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      case 'alerta':
+        return { label: 'Alerta', className: 'bg-amber-50 text-amber-700 border-amber-200' };
+      case 'critico':
+        return { label: 'Crítico', className: 'bg-red-50 text-red-700 border-red-200' };
+      default:
+        return { label: 'Sem dados', className: 'bg-slate-50 text-slate-500 border-slate-200' };
+    }
+  };
+
+  const surveyLink = company
+    ? `${window.location.origin}/survey/${company.slug}`
+    : '';
+
+  const handleCopyLink = async () => {
+    if (!surveyLink) return;
+
+    try {
+      await navigator.clipboard.writeText(surveyLink);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (error) {
+      console.error('Erro ao copiar o link:', error);
+    }
+  };
+
   const handleExportPDF = () => {
     window.print();
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate('/');
   };
 
   return (
@@ -260,19 +286,13 @@ export default function Dashboard() {
               >
                 <path d="M5 17c0-3.87 3.13-7 7-7s7 3.13 7 7" />
                 <path d="M8.5 17c0-1.93 1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5" />
-                <circle
-                  cx="12"
-                  cy="17"
-                  r="1.5"
-                  fill="currentColor"
-                  stroke="none"
-                />
+                <circle cx="12" cy="17" r="1.5" fill="currentColor" stroke="none" />
               </svg>
             </div>
 
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-slate-800 leading-tight">
-                Atmos
+                Atmos{company ? ` — ${company.name}` : ''}
               </span>
               <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase">
                 Diagnóstico &amp; BI
@@ -285,24 +305,11 @@ export default function Dashboard() {
               onClick={handleExportPDF}
               className="inline-flex items-center gap-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg shadow-sm transition"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a2 2 0 01.707.293l5.414 5.414a2 2 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
               Exportar Relatório (PDF)
             </button>
 
             <button
-              onClick={() => navigate('/')}
+              onClick={() => void handleLogout()}
               className="text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg transition"
             >
               Sair
@@ -317,7 +324,7 @@ export default function Dashboard() {
             Relatório de Diagnóstico de Clima Organizacional
           </h1>
           <p className="text-sm text-slate-600 mt-1">
-            Gerado automaticamente via Atmos Platform • Data:{' '}
+            {company?.name} • Gerado automaticamente via Atmos Platform • Data:{' '}
             {new Date().toLocaleDateString('pt-BR')}
           </p>
         </div>
@@ -339,9 +346,7 @@ export default function Dashboard() {
               </p>
               <p className="text-2xl font-bold text-slate-800">
                 {loading ? '...' : data.length}{' '}
-                <span className="text-sm font-normal text-slate-500">
-                  respostas
-                </span>
+                <span className="text-sm font-normal text-slate-500">respostas</span>
               </p>
             </div>
 
@@ -350,14 +355,34 @@ export default function Dashboard() {
                 Média Global
               </p>
               <p className="text-2xl font-bold text-blue-600 print:text-black">
-                {loading ? '...' : mediaGeral}{' '}
-                <span className="text-sm font-normal text-slate-500">
-                  / 5.0
-                </span>
+                {loading ? '...' : diagnosis?.mediaGeral ?? '0.0'}{' '}
+                <span className="text-sm font-normal text-slate-500">/ 5.0</span>
               </p>
             </div>
           </div>
         </div>
+
+        {!loading && company && (
+          <div className="bg-white border border-[#dce7f2] rounded-2xl p-5 mb-6 shadow-sm print:hidden">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              Link da pesquisa para seus colaboradores
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                readOnly
+                value={surveyLink}
+                className="flex-grow px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700"
+              />
+              <button
+                onClick={() => void handleCopyLink()}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition shrink-0"
+              >
+                {linkCopied ? 'Link copiado!' : 'Copiar link'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {loading && (
           <div className="bg-white border border-blue-100 rounded-xl p-5 mb-6 text-sm text-blue-700">
@@ -370,13 +395,14 @@ export default function Dashboard() {
             role="alert"
             className="bg-red-50 border border-red-200 rounded-xl p-5 mb-6 text-sm text-red-800"
           >
-            <p className="font-semibold mb-2">
-              Não foi possível carregar os dados.
-            </p>
+            <p className="font-semibold mb-2">Não foi possível carregar os dados.</p>
             <p className="mb-4">{errorMessage}</p>
             <button
               type="button"
-              onClick={() => void fetchResponses()}
+              onClick={() => {
+                const user = auth.currentUser;
+                if (user) void fetchAll(user);
+              }}
               className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg"
             >
               Tentar novamente
@@ -386,95 +412,13 @@ export default function Dashboard() {
 
         {!loading && !errorMessage && (
           <>
-            <div className="bg-sky-50 border border-sky-200 rounded-2xl p-5 mb-6 shadow-sm print:hidden">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 text-sky-600">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-sky-900 mb-2">
-                    Como interpretar este relatório para o Plano de Intervenção
-                  </h3>
-
-                  <ul className="text-sm text-sky-800 space-y-1.5 list-disc list-inside">
-                    <li>
-                      <strong>Métricas por Cores:</strong>{' '}
-                      <span className="text-emerald-600 font-semibold">
-                        Verde (≥ 4.0)
-                      </span>{' '}
-                      indica zonas de excelência e engajamento.{' '}
-                      <span className="text-amber-600 font-semibold">
-                        Amarelo (3.0 a 3.9)
-                      </span>{' '}
-                      indica alerta e necessidade de monitoramento.{' '}
-                      <span className="text-red-600 font-semibold">
-                        Vermelho (&lt; 3.0)
-                      </span>{' '}
-                      aponta criticidade, exigindo prioridade nas ações.
-                    </li>
-                    <li>
-                      <strong>Mapeamento Global:</strong> O gráfico de barras
-                      mostra a percepção sistêmica da empresa. Utilize os
-                      indicadores mais fracos para propor intervenções.
-                    </li>
-                    <li>
-                      <strong>Microclima por Setor:</strong> Os cards
-                      segmentados revelam como cada área vive a cultura.
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
             <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 mb-8 shadow-sm print:bg-white print:border-slate-300 print:shadow-none">
               <h3 className="text-lg font-bold text-blue-900 mb-3 print:text-slate-900">
                 Parecer Técnico: Resumo do Diagnóstico
               </h3>
 
               <div className="text-sm text-slate-700 space-y-3 leading-relaxed">
-                <p>
-                  O presente diagnóstico foi construído com base nas percepções
-                  de <strong>{data.length} colaboradores</strong>. A média
-                  global de favorabilidade organizacional encontra-se em{' '}
-                  <strong>{mediaGeral} pontos</strong> (numa escala de 1 a 5).
-                </p>
-
-                {answeredDimensions.length > 0 ? (
-                  <>
-                    <p>
-                      <strong>Ponto Forte (Retenção):</strong> A dimensão
-                      melhor avaliada pela equipe foi{' '}
-                      <strong>{pontoForte?.name}</strong>, com uma média de{' '}
-                      <strong>{pontoForte?.nota}</strong>. Esta prática deve
-                      ser mantida e reforçada.
-                    </p>
-
-                    <p>
-                      <strong>Gargalo Cultural (Foco de Intervenção):</strong>{' '}
-                      A dimensão com menor média é{' '}
-                      <strong>{pontoCritico?.name}</strong>, com média de{' '}
-                      <strong>{pontoCritico?.nota}</strong>. Recomenda-se
-                      investigar as causas e planejar ações de melhoria.
-                    </p>
-                  </>
-                ) : (
-                  <p className="italic text-slate-500">
-                    Ainda não há respostas válidas para calcular as médias.
-                  </p>
-                )}
+                <p>{diagnosis?.resumoExecutivo}</p>
               </div>
             </div>
 
@@ -492,16 +436,8 @@ export default function Dashboard() {
                     layout="vertical"
                     margin={{ top: 0, right: 30, left: 40, bottom: 0 }}
                   >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      horizontal={false}
-                      stroke="#e2e8f0"
-                    />
-                    <XAxis
-                      type="number"
-                      domain={[0, 5]}
-                      tick={{ fontSize: 12 }}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                    <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 12 }} />
                     <YAxis
                       dataKey="name"
                       type="category"
@@ -516,22 +452,80 @@ export default function Dashboard() {
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                       }}
                     />
-                    <Bar
-                      dataKey="nota"
-                      radius={[0, 4, 4, 0]}
-                      barSize={24}
-                      isAnimationActive={false}
-                    >
+                    <Bar dataKey="nota" radius={[0, 4, 4, 0]} barSize={24} isAnimationActive={false}>
                       {generalClimateData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={getBarColor(entry.nota)}
-                        />
+                        <Cell key={`cell-${index}`} fill={getBarColor(entry.nota)} />
                       ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+            </div>
+
+            <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm mb-8 print:border-slate-300 print:shadow-none print:break-inside-avoid">
+              <h3 className="text-lg font-bold text-slate-800 mb-1">
+                Diagnóstico de Clima &amp; Plano de Intervenção
+              </h3>
+              <p className="text-sm text-slate-500 mb-5">
+                Análise por dimensão, fundamentada em teorias científicas de motivação e gestão.
+              </p>
+
+              <div className="space-y-4">
+                {diagnosis?.dimensoes.map((dimension) => {
+                  const badge = getClassificationBadge(dimension.classificacao);
+
+                  return (
+                    <div
+                      key={dimension.key}
+                      className="p-4 rounded-xl border border-slate-200"
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div>
+                          <p className="font-semibold text-slate-800">
+                            {dimension.nome}{' '}
+                            <span className="text-slate-400 font-normal">
+                              ({dimension.nota || '—'})
+                            </span>
+                          </p>
+                          <p className="text-xs text-slate-500 italic">{dimension.teoria}</p>
+                        </div>
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 ${badge.className}`}
+                        >
+                          {badge.label}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-600">{dimension.diagnostico}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {diagnosis && diagnosis.planoIntervencao.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <h4 className="font-bold text-slate-800 mb-3">
+                    Plano de Intervenção Priorizado
+                  </h4>
+                  <div className="space-y-3">
+                    {diagnosis.planoIntervencao.map((action, index) => (
+                      <div
+                        key={`${action.dimensao}-${index}`}
+                        className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100"
+                      >
+                        <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-lg shrink-0">
+                          {action.prazo}
+                        </span>
+                        <div>
+                          <p className="text-sm text-slate-700">
+                            <strong>{action.dimensao}:</strong> {action.acao}
+                          </p>
+                          <p className="text-xs text-slate-400 italic">{action.teoria}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <h3 className="text-lg font-bold text-slate-800 mb-4 print:mt-10 print:break-before-page">
@@ -562,15 +556,10 @@ export default function Dashboard() {
                     <div className="space-y-4">
                       <div>
                         <div className="flex justify-between text-sm mb-1">
-                          <span
-                            className="text-slate-600 font-medium truncate pr-4"
-                            title={sector.q1Label}
-                          >
+                          <span className="text-slate-600 font-medium truncate pr-4" title={sector.q1Label}>
                             {sector.q1Label}
                           </span>
-                          <span className="font-bold text-slate-800">
-                            {sector.q1Media}
-                          </span>
+                          <span className="font-bold text-slate-800">{sector.q1Media}</span>
                         </div>
 
                         <div className="w-full bg-slate-200 rounded-full h-2 print:border print:border-slate-300">
@@ -586,15 +575,10 @@ export default function Dashboard() {
 
                       <div>
                         <div className="flex justify-between text-sm mb-1">
-                          <span
-                            className="text-slate-600 font-medium truncate pr-4"
-                            title={sector.q2Label}
-                          >
+                          <span className="text-slate-600 font-medium truncate pr-4" title={sector.q2Label}>
                             {sector.q2Label}
                           </span>
-                          <span className="font-bold text-slate-800">
-                            {sector.q2Media}
-                          </span>
+                          <span className="font-bold text-slate-800">{sector.q2Media}</span>
                         </div>
 
                         <div className="w-full bg-slate-200 rounded-full h-2 print:border print:border-slate-300">
@@ -619,28 +603,11 @@ export default function Dashboard() {
       <footer className="relative z-10 w-full border-t border-sky-100/80 bg-white/50 backdrop-blur-sm py-4 text-xs text-slate-500 mt-auto print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center space-x-2">
-            <svg
-              className="w-4 h-4 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-            <span>
-              Dados consolidados e protegidos via k-anonimato.
-            </span>
+            <span>Dados consolidados e protegidos por empresa.</span>
           </div>
 
           <div className="flex items-center space-x-4">
-            <span className="text-slate-400">
-              © 2026 Atmos Platform
-            </span>
+            <span className="text-slate-400">© 2026 Atmos Platform</span>
           </div>
         </div>
       </footer>
