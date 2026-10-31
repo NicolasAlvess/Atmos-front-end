@@ -7,6 +7,8 @@ import PageBackground from '../components/layout/PageBackground';
 import AppHeader from '../components/layout/AppHeader';
 import Button from '../components/ui/Button';
 import PasswordChecklist from '../components/ui/PasswordChecklist';
+import SlowLoadingNotice from '../components/ui/SlowLoadingNotice';
+import { useSlowLoading } from '../hooks/useSlowLoading';
 import { isEmailValid, isPasswordValid } from '../lib/passwordRules';
 
 function getSignUpErrorMessage(error: unknown): string {
@@ -39,6 +41,7 @@ export default function SignUp() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const isLoadingSlowly = useSlowLoading(isLoading);
 
   const companyNameError =
     touched.companyName && !companyName.trim() ? 'Informe o nome da empresa.' : '';
@@ -118,7 +121,7 @@ export default function SignUp() {
       <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-6 py-10 lg:py-14">
         <div className="w-full max-w-md">
           <section className="bg-white rounded-2xl sm:rounded-3xl border border-sky-100 shadow-[0_10px_30px_-5px_rgba(27,54,93,0.07)] p-7 sm:p-9 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-400 via-blue-600 to-sky-400"></div>
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-400 via-blue-600 to-indigo-600"></div>
 
             {success ? (
               <div className="text-center py-6 animate-[fadeIn_0.3s_ease-out]">
@@ -137,7 +140,7 @@ export default function SignUp() {
             ) : (
               <>
                 <div className="text-center mb-7 mt-2">
-                  <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-inner mb-4">
+                  <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 mb-4">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                   </div>
                   <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Cadastre sua Empresa</h1>
@@ -189,10 +192,11 @@ export default function SignUp() {
                     <PasswordChecklist password={password} />
                   </div>
 
-                  <div className="pt-2">
+                  <div className="pt-2 space-y-3">
                     <Button type="submit" variant="dark" loading={isLoading} className="w-full py-2.5">
                       {isLoading ? 'Criando conta...' : 'Criar conta e gerar link'}
                     </Button>
+                    {isLoadingSlowly && <SlowLoadingNotice />}
                   </div>
                 </form>
 

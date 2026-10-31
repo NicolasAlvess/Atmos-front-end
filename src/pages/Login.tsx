@@ -53,7 +53,7 @@ export default function Login() {
         badge={
           <>
             <span className="hidden sm:inline-block h-5 w-[1px] bg-slate-200 ml-2 mr-1"></span>
-            <Badge tone="blue">Módulo de Gestão &amp; BI</Badge>
+            <Badge tone="violet">Módulo de Gestão &amp; BI</Badge>
           </>
         }
       />
@@ -61,10 +61,10 @@ export default function Login() {
       <main className="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-6 py-10 lg:py-14">
         <div className="w-full max-w-md">
           <section className="bg-white rounded-2xl sm:rounded-3xl border border-sky-100 shadow-[0_10px_30px_-5px_rgba(27,54,93,0.07)] p-7 sm:p-9 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-400 via-blue-600 to-sky-400"></div>
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-400 via-blue-600 to-indigo-600"></div>
 
             <div className="text-center mb-7 mt-2">
-              <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-inner mb-4">
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 mb-4">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeLinecap="round" strokeLinejoin="round"></path></svg>
               </div>
               <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Acesso da Empresa</h1>

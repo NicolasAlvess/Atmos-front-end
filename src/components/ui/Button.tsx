@@ -4,8 +4,8 @@ type Variant = 'primary' | 'dark' | 'secondary' | 'outline';
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
-    'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/25 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-  dark: 'bg-[#162235] hover:bg-slate-900 text-white shadow-md',
+    'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-600/25 hover:shadow-lg hover:shadow-indigo-600/30 hover:-translate-y-0.5 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+  dark: 'bg-gradient-to-r from-[#162235] to-[#1e2a44] hover:from-slate-900 hover:to-[#1b2740] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5',
   secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-600',
   outline:
     'bg-white border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 shadow-sm'

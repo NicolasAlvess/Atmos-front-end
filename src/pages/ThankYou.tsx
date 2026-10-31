@@ -9,7 +9,7 @@ export default function ThankYou() {
   return (
     <PageBackground variant="auth" className="items-center justify-center p-4">
       <div className="relative z-10 max-w-md w-full bg-white rounded-3xl border border-sky-100 shadow-[0_10px_30px_-5px_rgba(27,54,93,0.07)] p-8 text-center">
-        <div className="mx-auto w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 mb-6 shadow-inner">
+        <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white mb-6 shadow-lg shadow-emerald-500/25">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
           </svg>

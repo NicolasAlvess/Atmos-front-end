@@ -1,3 +1,4 @@
+import Card from '../ui/Card';
 import { getClimateBarColor } from '../../lib/climateColor';
 
 export interface SectorAnalysis {
@@ -32,12 +33,13 @@ export default function SectorBreakdown({ sectors }: { sectors: SectorAnalysis[]
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:grid-cols-2">
       {sectors.map((sector) => (
-        <div
+        <Card
           key={sector.setor}
-          className="bg-white border border-[#dce7f2] rounded-xl p-5 shadow-sm print:border-slate-300 print:shadow-none print:break-inside-avoid"
+          hoverable
+          className="p-5 print:break-inside-avoid"
         >
           <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3 print:border-slate-200">
-            <h4 className="font-bold text-blue-800 print:text-slate-900">{sector.setor}</h4>
+            <h4 className="font-bold text-indigo-700 print:text-slate-900">{sector.setor}</h4>
             <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium print:border print:border-slate-300">
               {sector.total} respostas
             </span>
@@ -51,7 +53,7 @@ export default function SectorBreakdown({ sectors }: { sectors: SectorAnalysis[]
               <SectorMetric label={sector.q2Label} value={sector.q2Media} />
             </div>
           )}
-        </div>
+        </Card>
       ))}
     </div>
   );

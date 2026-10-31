@@ -31,16 +31,16 @@ export default function Home() {
       />
 
       <main className="relative z-10 flex-grow flex items-center justify-center p-4 sm:p-6 my-8">
-        <div className="max-w-2xl w-full bg-white rounded-2xl border border-sky-100 shadow-[0_10px_30px_-5px_rgba(27,54,93,0.07)] p-8 sm:p-10 min-h-[450px] flex flex-col justify-center">
+        <div className="max-w-2xl w-full bg-white rounded-3xl border border-sky-100 shadow-[0_20px_50px_-12px_rgba(67,56,202,0.12)] p-8 sm:p-10 min-h-[450px] flex flex-col justify-center">
           {isNavigating ? (
             // Card Dinâmico de Carregamento
             <div className="flex flex-col items-center justify-center py-10 animate-[fadeIn_0.3s_ease-out]">
               <div className="relative flex items-center justify-center w-24 h-24 mb-8">
                 {/* Anéis de carregamento */}
                 <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
                 {/* Ícone central pulsante */}
-                <div className="absolute inset-0 flex items-center justify-center text-blue-600 animate-pulse">
+                <div className="absolute inset-0 flex items-center justify-center text-indigo-600 animate-pulse">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                   </svg>
@@ -53,13 +53,16 @@ export default function Home() {
             // Conteúdo Padrão
             <div className="animate-[fadeIn_0.3s_ease-out]">
               <div className="text-center mb-8">
-                <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-inner mb-4">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 mb-4">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                   </svg>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">
-                  Diagnóstico de Clima Organizacional
+                <h1 className="text-2xl sm:text-4xl font-bold text-slate-800 tracking-tight">
+                  Diagnóstico de{' '}
+                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    Clima Organizacional
+                  </span>
                 </h1>
               </div>
 

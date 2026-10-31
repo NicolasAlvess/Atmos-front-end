@@ -23,7 +23,7 @@ export default function AppHeader({
           className={`flex items-center space-x-3 min-w-0 ${onLogoClick ? 'cursor-pointer' : ''}`}
           onClick={onLogoClick}
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center shadow-sm shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm shrink-0">
             <AtmosLogo />
           </div>
           <div className="flex flex-col min-w-0">

@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { signOut, type User } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuthUser } from '../hooks/useAuthUser';
+import { useSlowLoading } from '../hooks/useSlowLoading';
 import PageBackground from '../components/layout/PageBackground';
 import AppHeader from '../components/layout/AppHeader';
 import Button from '../components/ui/Button';
+import SlowLoadingNotice from '../components/ui/SlowLoadingNotice';
 import StatCard from '../components/dashboard/StatCard';
 import DiagnosisSummaryCard from '../components/dashboard/DiagnosisSummaryCard';
 import ClimateBarChart from '../components/dashboard/ClimateBarChart';
@@ -66,6 +68,7 @@ export default function Dashboard() {
   const [errorMessage, setErrorMessage] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
   const navigate = useNavigate();
+  const isLoadingSlowly = useSlowLoading(loading);
 
   const fetchAll = useCallback(async (currentUser: User) => {
     if (!API_URL) {
@@ -260,12 +263,26 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 w-full md:flex md:w-auto md:gap-4">
-            <StatCard label="Amostragem" value={loading ? '...' : data.length} suffix="respostas" />
+            <StatCard
+              label="Amostragem"
+              value={loading ? '...' : data.length}
+              suffix="respostas"
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 2a4 4 0 10-8 0" />
+                </svg>
+              }
+            />
             <StatCard
               label="Média Global"
               value={loading ? '...' : diagnosis?.mediaGeral ?? '0.0'}
               suffix="/ 5.0"
               accent
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              }
             />
           </div>
         </div>
@@ -290,8 +307,9 @@ export default function Dashboard() {
         )}
 
         {loading && (
-          <div className="bg-white border border-blue-100 rounded-xl p-5 mb-6 text-sm text-blue-700">
-            Carregando respostas do servidor...
+          <div className="bg-white border border-blue-100 rounded-xl p-5 mb-6 text-sm text-blue-700 space-y-2">
+            <p>Carregando respostas do servidor...</p>
+            {isLoadingSlowly && <SlowLoadingNotice />}
           </div>
         )}
 
