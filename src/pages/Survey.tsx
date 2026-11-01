@@ -145,21 +145,40 @@ export default function Survey() {
     void resolveCompany();
   }, [slug]);
 
-  const [formData, setFormData] = useState<Record<string, string>>({
-    tempo_empresa: '',
-    setor: '',
-    faixa_etaria: '',
-    genero: '',
-    raca_cor: '',
-    q1_pertencimento: '',
-    q2_valorizacao: '',
-    q3_seguranca: '',
-    q4_respeito: '',
-    q5_equidade: '',
-    q6_capacitacao: '',
-    q7_comunicacao: '',
-    q8_lideranca: ''
+  const draftKey = `atmos_survey_draft_${slug ?? ''}`;
+
+  const [formData, setFormData] = useState<Record<string, string>>(() => {
+    const defaults = {
+      tempo_empresa: '',
+      setor: '',
+      faixa_etaria: '',
+      genero: '',
+      raca_cor: '',
+      q1_pertencimento: '',
+      q2_valorizacao: '',
+      q3_seguranca: '',
+      q4_respeito: '',
+      q5_equidade: '',
+      q6_capacitacao: '',
+      q7_comunicacao: '',
+      q8_lideranca: ''
+    };
+
+    try {
+      const saved = localStorage.getItem(`atmos_survey_draft_${slug ?? ''}`);
+      return saved ? { ...defaults, ...(JSON.parse(saved) as Record<string, string>) } : defaults;
+    } catch {
+      return defaults;
+    }
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(formData));
+    } catch {
+      // Armazenamento indisponível (ex: navegação privada); segue sem rascunho.
+    }
+  }, [draftKey, formData]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -183,6 +202,11 @@ export default function Survey() {
       });
 
       if (response.ok) {
+        try {
+          localStorage.removeItem(draftKey);
+        } catch {
+          // Armazenamento indisponível; nada a limpar.
+        }
         navigate('/thank-you');
       } else {
         const errorText = await response.text().catch(() => '');
@@ -304,12 +328,12 @@ export default function Survey() {
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <Button
                 variant="secondary"
-                className="w-full sm:w-auto"
+                className="w-full sm:flex-1 whitespace-nowrap"
                 onClick={() => navigate('/sobre')}
               >
                 Não quero participar
               </Button>
-              <Button className="w-full flex-grow" onClick={() => setHasConsented(true)}>
+              <Button className="w-full sm:flex-1 whitespace-nowrap" onClick={() => setHasConsented(true)}>
                 Concordo e quero participar
               </Button>
             </div>
@@ -321,8 +345,9 @@ export default function Survey() {
 
   return (
     <PageBackground className="selection:bg-blue-100 selection:text-blue-900">
-      {/* Cabeçalho */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#dce7f2] shadow-sm">
+      {/* Cabeçalho + barra de progresso (fixos juntos no topo) */}
+      <div className="sticky top-0 z-40">
+      <header className="bg-white/95 backdrop-blur-md border-b border-[#dce7f2] shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
@@ -362,7 +387,7 @@ export default function Survey() {
             </div>
 
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/sobre')}
               className="text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg bg-white transition shadow-sm"
               type="button"
             >
@@ -373,6 +398,7 @@ export default function Survey() {
       </header>
 
       <SurveyProgress answered={answeredFields} total={allFieldNames.length} />
+      </div>
 
       {/* Conteúdo Principal */}
       <main className="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
@@ -487,13 +513,13 @@ export default function Survey() {
             <Button
               variant="secondary"
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/sobre')}
               className="w-full sm:w-auto"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span>Voltar ao Início</span>
+              <span>Cancelar e sair</span>
             </Button>
 
             <Button

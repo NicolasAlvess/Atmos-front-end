@@ -27,6 +27,21 @@ export default function DimensionDiagnosisList({
 }: {
   dimensions: DimensionDiagnosis[];
 }) {
+  const hasAnyData = dimensions.some((dimension) => dimension.classificacao !== 'sem_dados');
+
+  if (!hasAnyData) {
+    return (
+      <div className="p-5 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center mb-2">
+        <p className="text-sm font-semibold text-slate-600">
+          Ainda não há respostas suficientes para gerar o diagnóstico por dimensão.
+        </p>
+        <p className="text-xs text-slate-500 mt-1">
+          Compartilhe o link da pesquisa com seus colaboradores para começar a ver os resultados aqui.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {dimensions.map((dimension) => {
