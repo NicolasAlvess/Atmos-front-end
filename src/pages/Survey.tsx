@@ -2,9 +2,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageBackground from '../components/layout/PageBackground';
+import AppHeader from '../components/layout/AppHeader';
 import AtmosLogo from '../components/icons/AtmosLogo';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
 import DemographicsStep from '../components/survey/DemographicsStep';
 import LikertQuestion from '../components/survey/LikertQuestion';
 import SurveyProgress from '../components/survey/SurveyProgress';
@@ -112,6 +114,7 @@ export default function Survey() {
 
   const [companyName, setCompanyName] = useState('');
   const [companyStatus, setCompanyStatus] = useState<'loading' | 'ready' | 'not_found'>('loading');
+  const [hasConsented, setHasConsented] = useState(false);
 
   useEffect(() => {
     const resolveCompany = async () => {
@@ -250,6 +253,69 @@ export default function Survey() {
           <Button onClick={() => navigate('/')}>Voltar ao início</Button>
         </div>
       </div>
+    );
+  }
+
+  if (!hasConsented) {
+    return (
+      <PageBackground>
+        <AppHeader title={companyName || 'Atmos'} />
+
+        <main className="relative z-10 flex-grow flex items-center justify-center p-4 sm:p-6 my-8">
+          <Card className="max-w-2xl w-full p-8 sm:p-10">
+            <div className="text-center mb-8">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 mb-4">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h1 className="font-display text-2xl sm:text-3xl font-semibold text-slate-800 tracking-tight">
+                Pesquisa de Clima &amp; Inclusão
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">{companyName}</p>
+            </div>
+
+            <div className="text-slate-600 space-y-4 text-sm sm:text-base leading-relaxed bg-slate-50 p-6 rounded-xl border border-slate-100">
+              <p>
+                <strong className="text-slate-800">Bem-vindo(a) à pesquisa de {companyName}.</strong>
+              </p>
+              <p>
+                Esta pesquisa tem um propósito estritamente diagnóstico, visando entender como as
+                práticas de gestão de pessoas impactam o ambiente de trabalho, as relações
+                interpessoais e a inclusão na empresa.
+              </p>
+              <p>
+                A sua participação é voluntária. Garantimos o{' '}
+                <strong className="text-blue-700">absoluto anonimato e sigilo</strong> das suas
+                respostas; não coletamos seu nome, e-mail ou qualquer dado de identificação direta.
+                Os dados sociodemográficos solicitados serão analisados apenas em bloco.
+              </p>
+              <div className="flex items-start gap-2 mt-4 pt-4 border-t border-slate-200 text-xs sm:text-sm italic text-slate-500">
+                <svg className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p>
+                  Ao clicar em "Concordo e quero participar", você confirma que compreende o
+                  propósito do estudo e concorda em participar de forma livre e esclarecida.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              <Button
+                variant="secondary"
+                className="w-full sm:w-auto"
+                onClick={() => navigate('/sobre')}
+              >
+                Não quero participar
+              </Button>
+              <Button className="w-full flex-grow" onClick={() => setHasConsented(true)}>
+                Concordo e quero participar
+              </Button>
+            </div>
+          </Card>
+        </main>
+      </PageBackground>
     );
   }
 

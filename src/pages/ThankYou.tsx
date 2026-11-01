@@ -34,8 +34,8 @@ export default function ThankYou() {
           Muito obrigado pela sua participação. As suas respostas foram registadas com sucesso, de forma 100% anónima e segura. O seu feedback é fundamental para o nosso diagnóstico de clima e inclusão.
         </p>
 
-        <Button onClick={() => navigate('/')} variant="celebrate" className="w-full py-3">
-          Voltar à Tela Inicial
+        <Button onClick={() => navigate('/sobre')} variant="celebrate" className="w-full py-3">
+          Saber mais sobre a Atmos
         </Button>
       </div>
     </PageBackground>
