@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import ThankYou from './pages/ThankYou';
 import About from './pages/About';
+import Theories from './pages/Theories';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -22,6 +23,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/teorias"
+          element={
+            <ProtectedRoute>
+              <Theories />
             </ProtectedRoute>
           }
         />

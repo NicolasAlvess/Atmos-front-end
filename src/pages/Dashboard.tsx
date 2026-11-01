@@ -213,6 +213,26 @@ export default function Dashboard() {
         right={
           <>
             <button
+              onClick={() => navigate('/admin/teorias')}
+              className="hidden sm:inline-flex items-center gap-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-lg shadow-sm transition"
+            >
+              Teorias do Diagnóstico
+            </button>
+            <button
+              onClick={() => navigate('/admin/teorias')}
+              className="sm:hidden inline-flex items-center justify-center text-blue-700 bg-blue-50 border border-blue-200 w-9 h-9 rounded-lg shadow-sm transition"
+              aria-label="Teorias do Diagnóstico"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                />
+              </svg>
+            </button>
+            <button
               onClick={handleExportPDF}
               className="hidden sm:inline-flex items-center gap-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg shadow-sm transition"
             >
