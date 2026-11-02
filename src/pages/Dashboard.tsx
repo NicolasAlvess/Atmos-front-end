@@ -699,7 +699,7 @@ export default function Dashboard() {
       <footer className="relative z-10 w-full border-t border-sky-100/80 bg-white/50 backdrop-blur-sm py-4 text-xs text-slate-500 mt-auto print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>Dados consolidados e protegidos por empresa.</span>
-          <span className="text-slate-400">© 2026 Atmos Platform</span>
+          <span className="text-slate-500">© 2026 Atmos Platform</span>
         </div>
       </footer>
     </PageBackground>

@@ -47,6 +47,8 @@ export default function Theories() {
                 <button
                   key={theory.id}
                   onClick={() => setSelectedId(theory.id)}
+                  aria-pressed={isActive}
+                  aria-label={`${theory.name}, ${theory.author}`}
                   className={`shrink-0 text-left px-4 py-3 rounded-xl border transition w-full md:w-auto ${
                     isActive
                       ? 'bg-blue-50 border-blue-200 shadow-sm'

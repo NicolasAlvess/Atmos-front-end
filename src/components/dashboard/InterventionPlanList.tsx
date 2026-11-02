@@ -26,7 +26,7 @@ export default function InterventionPlanList({ actions }: { actions: Interventio
               <p className="text-sm text-slate-700">
                 <strong>{action.dimensao}:</strong> {action.acao}
               </p>
-              <p className="text-xs text-slate-400 italic">{action.teoria}</p>
+              <p className="text-xs text-slate-500 italic">{action.teoria}</p>
             </div>
           </div>
         ))}

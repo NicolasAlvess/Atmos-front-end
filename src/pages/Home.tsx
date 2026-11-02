@@ -99,7 +99,7 @@ export default function Home() {
             <span>Criptografia TLS 256-bit • Dados Consolidados & Anônimos</span>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-slate-400">© 2026 Atmos Platform</span>
+            <span className="text-slate-500">© 2026 Atmos Platform</span>
           </div>
         </div>
       </footer>

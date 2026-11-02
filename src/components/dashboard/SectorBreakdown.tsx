@@ -46,7 +46,7 @@ export default function SectorBreakdown({ sectors }: { sectors: SectorAnalysis[]
           </div>
 
           {sector.total === 0 ? (
-            <p className="text-sm text-slate-400 italic py-4 text-center">Aguardando dados</p>
+            <p className="text-sm text-slate-500 italic py-4 text-center">Aguardando dados</p>
           ) : (
             <div className="space-y-4">
               <SectorMetric label={sector.q1Label} value={sector.q1Media} />

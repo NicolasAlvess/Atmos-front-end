@@ -199,7 +199,7 @@ export default function About() {
             >
               Voltar à tela inicial
             </button>
-            <span className="text-slate-400">© 2026 Atmos Platform</span>
+            <span className="text-slate-500">© 2026 Atmos Platform</span>
           </div>
         </div>
       </footer>

@@ -11,7 +11,7 @@ export default function PasswordChecklist({ password, id }: { password: string; 
           <li
             key={rule.id}
             className={`flex items-center gap-1.5 text-xs ${
-              untouched ? 'text-slate-400' : met ? 'text-emerald-600' : 'text-red-500'
+              untouched ? 'text-slate-500' : met ? 'text-emerald-700' : 'text-red-600'
             }`}
           >
             <span className="sr-only">

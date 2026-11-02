@@ -132,7 +132,7 @@ export default function Login() {
 
             {mode === 'login' ? (
               <>
-                {error && <div role="alert" className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}
+                {error && <div role="alert" className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}
 
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
@@ -152,7 +152,7 @@ export default function Login() {
                     </div>
                     <div className="relative">
                       <input id="login-password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} className="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} disabled={isLoading} aria-pressed={showPassword} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} disabled={isLoading} aria-pressed={showPassword} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-600">
                         {showPassword ? "Ocultar" : "Mostrar"}
                       </button>
                     </div>
@@ -198,7 +198,7 @@ export default function Login() {
               </div>
             ) : (
               <>
-                {resetError && <div role="alert" className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{resetError}</div>}
+                {resetError && <div role="alert" className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{resetError}</div>}
 
                 <form onSubmit={handleReset} className="space-y-4">
                   <div>

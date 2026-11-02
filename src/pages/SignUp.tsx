@@ -149,7 +149,7 @@ export default function SignUp() {
                   </p>
                 </div>
 
-                {error && <div role="alert" className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}
+                {error && <div role="alert" className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}
 
                 <form onSubmit={handleSignUp} noValidate className="space-y-4">
                   <div>

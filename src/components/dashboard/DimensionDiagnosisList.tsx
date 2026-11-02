@@ -53,7 +53,7 @@ export default function DimensionDiagnosisList({
               <div className="min-w-0">
                 <p className="font-semibold text-slate-800">
                   {dimension.nome}{' '}
-                  <span className="text-slate-400 font-normal">({dimension.nota || '—'})</span>
+                  <span className="text-slate-500 font-normal">({dimension.nota || '—'})</span>
                 </p>
                 <p className="text-xs text-slate-500 italic">{dimension.teoria}</p>
               </div>

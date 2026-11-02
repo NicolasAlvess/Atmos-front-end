@@ -38,7 +38,11 @@ export default function RoundsTrendChart({ points }: { points: RoundTrendPoint[]
 
       <div className="h-72 w-full" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 10, right: 20, left: -10, bottom: 0 }}
+            tabIndex={-1}
+          >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
             <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#475569' }} />
             <YAxis domain={[0, 5]} tick={{ fontSize: 12 }} />
