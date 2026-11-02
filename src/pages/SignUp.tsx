@@ -149,47 +149,56 @@ export default function SignUp() {
                   </p>
                 </div>
 
-                {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}
+                {error && <div role="alert" className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center animate-[fadeIn_0.3s]">{error}</div>}
 
                 <form onSubmit={handleSignUp} noValidate className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Nome da empresa</label>
+                    <label htmlFor="companyName" className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Nome da empresa</label>
                     <input
+                      id="companyName"
                       type="text"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       onBlur={() => markTouched('companyName')}
                       disabled={isLoading}
+                      aria-invalid={!!companyNameError}
+                      aria-describedby={companyNameError ? 'companyName-error' : undefined}
                       className={inputClass(!!companyNameError)}
                     />
                     {companyNameError && (
-                      <p className="mt-1.5 text-xs text-red-600">{companyNameError}</p>
+                      <p id="companyName-error" className="mt-1.5 text-xs text-red-600">{companyNameError}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">E-mail</label>
+                    <label htmlFor="signup-email" className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">E-mail</label>
                     <input
+                      id="signup-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       onBlur={() => markTouched('email')}
                       disabled={isLoading}
+                      aria-invalid={!!emailError}
+                      aria-describedby={emailError ? 'signup-email-error' : undefined}
                       className={inputClass(!!emailError)}
                     />
-                    {emailError && <p className="mt-1.5 text-xs text-red-600">{emailError}</p>}
+                    {emailError && <p id="signup-email-error" className="mt-1.5 text-xs text-red-600">{emailError}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Senha</label>
+                    <label htmlFor="signup-password" className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Senha</label>
                     <input
+                      id="signup-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       onBlur={() => markTouched('password')}
                       disabled={isLoading}
+                      aria-invalid={!!passwordError}
+                      aria-describedby="signup-password-rules"
                       className={inputClass(!!passwordError)}
                     />
                     {passwordError && <p className="mt-1.5 text-xs text-red-600">{passwordError}</p>}
-                    <PasswordChecklist password={password} />
+                    <PasswordChecklist password={password} id="signup-password-rules" />
                   </div>
 
                   <div className="pt-2 space-y-3">

@@ -89,8 +89,11 @@ export default function DemographicsStep({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
         {FIELDS.map((field) => (
           <div key={field.name} className="space-y-1.5">
-            <label className="block text-sm font-semibold text-slate-700">{field.label}</label>
+            <label htmlFor={field.name} className="block text-sm font-semibold text-slate-700">
+              {field.label}
+            </label>
             <select
+              id={field.name}
               name={field.name}
               value={formData[field.name]}
               onChange={onChange}

@@ -45,14 +45,14 @@ export default function LikertQuestion({
 }) {
   return (
     <article className="p-5 sm:p-6 rounded-xl border border-slate-200 hover:border-blue-200 bg-[#fbfdff] transition-all hover:shadow-sm sm:hover:scale-[1.01]">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-start gap-3">
+      <fieldset className="flex flex-col gap-4 border-0 m-0 p-0">
+        <legend className="flex items-start gap-3 w-full p-0">
           <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-bold text-xs">
             {prefix}
             {index}
           </span>
-          <p className="text-sm sm:text-base font-semibold text-slate-900 leading-snug">{text}</p>
-        </div>
+          <span className="text-sm sm:text-base font-semibold text-slate-900 leading-snug">{text}</span>
+        </legend>
 
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 pt-1">
           {LIKERT_OPTIONS.map((opt) => {
@@ -72,7 +72,7 @@ export default function LikertQuestion({
                 />
                 <label
                   htmlFor={`${name}_${opt.value}`}
-                  className={`flex sm:flex-col items-center justify-between sm:justify-center p-3 rounded-xl border bg-white hover:bg-slate-50 cursor-pointer text-center text-xs font-semibold text-slate-700 transition ${tone.label}`}
+                  className={`flex sm:flex-col items-center justify-between sm:justify-center p-3 rounded-xl border bg-white hover:bg-slate-50 cursor-pointer text-center text-xs font-semibold text-slate-700 transition peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2 ${tone.label}`}
                 >
                   <span className={`sm:mb-1 font-bold ${tone.number}`}>{opt.value}</span>
                   <span className="text-[10px] sm:text-xs leading-tight">{opt.label}</span>
@@ -81,7 +81,7 @@ export default function LikertQuestion({
             );
           })}
         </div>
-      </div>
+      </fieldset>
     </article>
   );
 }
