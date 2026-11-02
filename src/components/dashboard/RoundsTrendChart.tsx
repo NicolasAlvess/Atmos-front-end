@@ -36,7 +36,7 @@ export default function RoundsTrendChart({ points }: { points: RoundTrendPoint[]
         </p>
       </div>
 
-      <div className="h-72 w-full">
+      <div className="h-72 w-full" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -62,6 +62,24 @@ export default function RoundsTrendChart({ points }: { points: RoundTrendPoint[]
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      <table className="sr-only">
+        <caption>Evolução da média geral de favorabilidade por rodada de pesquisa, escala 1 a 5</caption>
+        <thead>
+          <tr>
+            <th scope="col">Rodada</th>
+            <th scope="col">Média geral</th>
+          </tr>
+        </thead>
+        <tbody>
+          {chartData.map((point) => (
+            <tr key={point.name}>
+              <th scope="row">{point.name}</th>
+              <td>{point.media} de 5</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 }

@@ -22,7 +22,7 @@ export default function ClimateBarChart({
         <h3 className="text-lg font-bold text-slate-800">Mapeamento de Clima (Visão Geral)</h3>
       </div>
 
-      <div className="h-80 w-full">
+      <div className="h-80 w-full" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
@@ -49,6 +49,24 @@ export default function ClimateBarChart({
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      <table className="sr-only">
+        <caption>Mapeamento de clima por dimensão, nota de 0 a 5</caption>
+        <thead>
+          <tr>
+            <th scope="col">Dimensão</th>
+            <th scope="col">Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((entry) => (
+            <tr key={entry.name}>
+              <th scope="row">{entry.name}</th>
+              <td>{entry.nota} de 5</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 }

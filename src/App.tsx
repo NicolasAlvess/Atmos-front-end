@@ -9,10 +9,12 @@ import ThankYou from './pages/ThankYou';
 import About from './pages/About';
 import Theories from './pages/Theories';
 import ProtectedRoute from './components/ProtectedRoute';
+import RouteAnnouncer from './components/a11y/RouteAnnouncer';
 
 export default function App() {
   return (
     <Router>
+      <RouteAnnouncer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/survey/:slug" element={<Survey />} />
