@@ -34,6 +34,12 @@ interface CompanyInfo {
   slug: string;
 }
 
+interface SurveyRound {
+  id: string;
+  label: string;
+  startedAt: string;
+}
+
 interface DiagnosisData {
   totalRespostas: number;
   mediaGeral: number;
@@ -64,61 +70,132 @@ export default function Dashboard() {
   const [data, setData] = useState<ResponseData[]>([]);
   const [company, setCompany] = useState<CompanyInfo | null>(null);
   const [diagnosis, setDiagnosis] = useState<DiagnosisData | null>(null);
+  const [rounds, setRounds] = useState<SurveyRound[]>([]);
+  const [selectedRoundId, setSelectedRoundId] = useState<string>('');
+  const [previousRoundMedia, setPreviousRoundMedia] = useState<number | null>(null);
+  const [isCreatingRound, setIsCreatingRound] = useState(false);
+  const [confirmingNewRound, setConfirmingNewRound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
   const navigate = useNavigate();
   const isLoadingSlowly = useSlowLoading(loading);
 
-  const fetchAll = useCallback(async (currentUser: User) => {
-    if (!API_URL) {
-      setErrorMessage(
-        'A variável VITE_API_URL não está configurada. Verifique as variáveis de ambiente da Vercel e faça um novo deploy.'
-      );
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setErrorMessage('');
-
-    try {
-      const idToken = await currentUser.getIdToken();
-      const headers = {
-        Accept: 'application/json',
-        Authorization: `Bearer ${idToken}`
-      };
-
-      const [responsesRes, companyRes, diagnosisRes] = await Promise.all([
-        fetch(`${API_URL}/api/admin/responses`, { headers }),
-        fetch(`${API_URL}/api/admin/company`, { headers }),
-        fetch(`${API_URL}/api/admin/diagnosis`, { headers })
-      ]);
-
-      if (!responsesRes.ok || !companyRes.ok || !diagnosisRes.ok) {
-        throw new Error('O servidor retornou um erro ao carregar os dados do painel.');
-      }
-
-      const responses: unknown = await responsesRes.json();
-      const companyInfo: CompanyInfo = await companyRes.json();
-      const diagnosisData: DiagnosisData = await diagnosisRes.json();
-
-      if (!Array.isArray(responses)) {
-        throw new Error('A API retornou um formato inesperado. Era esperada uma lista de respostas.');
-      }
-
-      setData(responses as ResponseData[]);
-      setCompany(companyInfo);
-      setDiagnosis(diagnosisData);
-    } catch (error) {
-      console.error('Erro ao buscar dados do painel:', error);
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Não foi possível carregar os dados.'
-      );
-    } finally {
-      setLoading(false);
-    }
+  const authHeaders = useCallback(async (currentUser: User) => {
+    const idToken = await currentUser.getIdToken();
+    return {
+      Accept: 'application/json',
+      Authorization: `Bearer ${idToken}`
+    };
   }, []);
+
+  const fetchAll = useCallback(
+    async (currentUser: User) => {
+      if (!API_URL) {
+        setErrorMessage(
+          'A variável VITE_API_URL não está configurada. Verifique as variáveis de ambiente da Vercel e faça um novo deploy.'
+        );
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setErrorMessage('');
+
+      try {
+        const headers = await authHeaders(currentUser);
+
+        const [responsesRes, companyRes, diagnosisRes, roundsRes] = await Promise.all([
+          fetch(`${API_URL}/api/admin/responses`, { headers }),
+          fetch(`${API_URL}/api/admin/company`, { headers }),
+          fetch(`${API_URL}/api/admin/diagnosis`, { headers }),
+          fetch(`${API_URL}/api/admin/rounds`, { headers })
+        ]);
+
+        if (!responsesRes.ok || !companyRes.ok || !diagnosisRes.ok || !roundsRes.ok) {
+          throw new Error('O servidor retornou um erro ao carregar os dados do painel.');
+        }
+
+        const responses: unknown = await responsesRes.json();
+        const companyInfo: CompanyInfo = await companyRes.json();
+        const diagnosisData: DiagnosisData = await diagnosisRes.json();
+        const roundsData: SurveyRound[] = await roundsRes.json();
+
+        if (!Array.isArray(responses)) {
+          throw new Error('A API retornou um formato inesperado. Era esperada uma lista de respostas.');
+        }
+
+        setData(responses as ResponseData[]);
+        setCompany(companyInfo);
+        setDiagnosis(diagnosisData);
+        setRounds(roundsData);
+      } catch (error) {
+        console.error('Erro ao buscar dados do painel:', error);
+        setErrorMessage(
+          error instanceof Error ? error.message : 'Não foi possível carregar os dados.'
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authHeaders]
+  );
+
+  const fetchForRound = useCallback(
+    async (currentUser: User, roundId: string, roundsList: SurveyRound[]) => {
+      if (!API_URL) return;
+
+      setLoading(true);
+      setErrorMessage('');
+
+      try {
+        const headers = await authHeaders(currentUser);
+        const query = roundId ? `?roundId=${encodeURIComponent(roundId)}` : '';
+
+        const [responsesRes, diagnosisRes] = await Promise.all([
+          fetch(`${API_URL}/api/admin/responses${query}`, { headers }),
+          fetch(`${API_URL}/api/admin/diagnosis${query}`, { headers })
+        ]);
+
+        if (!responsesRes.ok || !diagnosisRes.ok) {
+          throw new Error('O servidor retornou um erro ao carregar os dados da rodada.');
+        }
+
+        const responses: unknown = await responsesRes.json();
+        const diagnosisData: DiagnosisData = await diagnosisRes.json();
+
+        setData(responses as ResponseData[]);
+        setDiagnosis(diagnosisData);
+
+        // `roundsList` vem ordenado da mais recente para a mais antiga,
+        // então a rodada cronologicamente anterior é a PRÓXIMA do array.
+        const roundIndex = roundsList.findIndex((round) => round.id === roundId);
+        const previousRound =
+          roundIndex !== -1 && roundIndex < roundsList.length - 1 ? roundsList[roundIndex + 1] : null;
+
+        if (previousRound) {
+          const previousRes = await fetch(
+            `${API_URL}/api/admin/diagnosis?roundId=${encodeURIComponent(previousRound.id)}`,
+            { headers }
+          );
+          const previousData: DiagnosisData = previousRes.ok
+            ? await previousRes.json()
+            : ({ mediaGeral: 0, totalRespostas: 0 } as DiagnosisData);
+          setPreviousRoundMedia(previousData.totalRespostas > 0 ? previousData.mediaGeral : null);
+        } else {
+          setPreviousRoundMedia(null);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados da rodada:', error);
+        setErrorMessage(
+          error instanceof Error ? error.message : 'Não foi possível carregar os dados da rodada.'
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authHeaders]
+  );
 
   useEffect(() => {
     if (!user) {
@@ -133,6 +210,48 @@ export default function Dashboard() {
       clearTimeout(timeoutId);
     };
   }, [user, fetchAll]);
+
+  const handleRoundChange = (roundId: string, roundsList: SurveyRound[] = rounds) => {
+    setSelectedRoundId(roundId);
+    if (!user) return;
+
+    if (!roundId) {
+      setPreviousRoundMedia(null);
+      void fetchAll(user);
+    } else {
+      void fetchForRound(user, roundId, roundsList);
+    }
+  };
+
+  const handleCreateRound = async () => {
+    if (!user || !API_URL) return;
+
+    setConfirmingNewRound(false);
+    setIsCreatingRound(true);
+
+    try {
+      const headers = await authHeaders(user);
+      const response = await fetch(`${API_URL}/api/admin/rounds`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+
+      if (!response.ok) {
+        throw new Error('Não foi possível iniciar a nova rodada.');
+      }
+
+      const newRound: SurveyRound = await response.json();
+      const updatedRounds = [newRound, ...rounds];
+      setRounds(updatedRounds);
+      handleRoundChange(newRound.id, updatedRounds);
+    } catch (error) {
+      console.error('Erro ao criar rodada:', error);
+      alert('Não foi possível iniciar a nova rodada. Tente novamente.');
+    } finally {
+      setIsCreatingRound(false);
+    }
+  };
 
   const generalClimateData = [
     { name: 'Pertencimento', nota: calcAverage(data, 'q1_pertencimento') },
@@ -200,6 +319,72 @@ export default function Dashboard() {
     window.print();
   };
 
+  const handleExportCSV = () => {
+    if (data.length === 0) return;
+
+    const preferredOrder = [
+      'id',
+      'timestamp',
+      'setor',
+      'tempo_empresa',
+      'faixa_etaria',
+      'genero',
+      'raca_cor',
+      'q1_pertencimento',
+      'q2_valorizacao',
+      'q3_seguranca',
+      'q4_respeito',
+      'q5_equidade',
+      'q6_capacitacao',
+      'q7_comunicacao',
+      'q8_lideranca',
+      'q_op_1',
+      'q_op_2',
+      'q_adm_1',
+      'q_adm_2',
+      'q_com_1',
+      'q_com_2',
+      'q_lid_1',
+      'q_lid_2'
+    ];
+    const excludedKeys = new Set(['companyId', 'companySlug']);
+
+    const allKeys = new Set<string>();
+    data.forEach((item) => {
+      Object.keys(item).forEach((key) => {
+        if (!excludedKeys.has(key)) allKeys.add(key);
+      });
+    });
+
+    const orderedKeys = [
+      ...preferredOrder.filter((key) => allKeys.has(key)),
+      ...Array.from(allKeys)
+        .filter((key) => !preferredOrder.includes(key))
+        .sort()
+    ];
+
+    const escapeCsvValue = (value: unknown) => {
+      const str = String(value ?? '');
+      return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+    };
+
+    const rows = [
+      orderedKeys.join(','),
+      ...data.map((item) => orderedKeys.map((key) => escapeCsvValue(item[key])).join(','))
+    ];
+
+    const csvContent = '﻿' + rows.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `atmos-respostas-${company?.slug ?? 'empresa'}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleLogout = async () => {
     await signOut(auth);
     navigate('/');
@@ -229,6 +414,28 @@ export default function Dashboard() {
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={handleExportCSV}
+              disabled={data.length === 0}
+              className="hidden sm:inline-flex items-center gap-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-lg shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Exportar CSV
+            </button>
+            <button
+              onClick={handleExportCSV}
+              disabled={data.length === 0}
+              className="sm:hidden inline-flex items-center justify-center text-slate-700 bg-white border border-slate-200 w-9 h-9 rounded-lg shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Exportar CSV"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a2 2 0 01.707.293l5.414 5.414a2 2 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
             </button>
@@ -306,6 +513,107 @@ export default function Dashboard() {
             />
           </div>
         </div>
+
+        {!loading && previousRoundMedia !== null && diagnosis && diagnosis.totalRespostas > 0 && (
+          <div className="mb-6 -mt-3 print:hidden">
+            {(() => {
+              const delta = Number((diagnosis.mediaGeral - previousRoundMedia).toFixed(1));
+              const isUp = delta > 0;
+              const isFlat = delta === 0;
+              return (
+                <span
+                  className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${
+                    isFlat
+                      ? 'bg-slate-50 text-slate-600 border-slate-200'
+                      : isUp
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-red-50 text-red-700 border-red-200'
+                  }`}
+                >
+                  {!isFlat && (
+                    <svg
+                      className={`w-3.5 h-3.5 ${isUp ? '' : 'rotate-180'}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                  )}
+                  {isFlat
+                    ? 'Média estável em relação à rodada anterior'
+                    : `${isUp ? '+' : ''}${delta} vs. rodada anterior (${previousRoundMedia.toFixed(1)})`}
+                </span>
+              );
+            })()}
+          </div>
+        )}
+
+        {!loading && rounds.length > 0 && (
+          <div className="bg-white border border-[#dce7f2] rounded-2xl p-5 mb-6 shadow-sm print:hidden">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              Rodada de pesquisa
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <select
+                value={selectedRoundId}
+                onChange={(e) => handleRoundChange(e.target.value)}
+                className="flex-grow min-w-0 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todas as respostas</option>
+                {rounds.map((round) => (
+                  <option key={round.id} value={round.id}>
+                    {round.label} — {new Date(round.startedAt).toLocaleDateString('pt-BR')}
+                  </option>
+                ))}
+              </select>
+              {!confirmingNewRound ? (
+                <Button
+                  variant="secondary"
+                  onClick={() => setConfirmingNewRound(true)}
+                  className="shrink-0"
+                >
+                  Iniciar nova rodada
+                </Button>
+              ) : (
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setConfirmingNewRound(false)}
+                    disabled={isCreatingRound}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button onClick={() => void handleCreateRound()} loading={isCreatingRound}>
+                    {!isCreatingRound && 'Confirmar nova rodada'}
+                  </Button>
+                </div>
+              )}
+            </div>
+            {confirmingNewRound && (
+              <p className="text-xs text-slate-500 mt-2">
+                A partir de agora, as novas respostas passam a contar para uma nova rodada.
+              </p>
+            )}
+          </div>
+        )}
+
+        {!loading && rounds.length === 0 && company && (
+          <div className="bg-white border border-dashed border-[#dce7f2] rounded-2xl p-5 mb-6 text-center print:hidden">
+            <p className="text-sm text-slate-600 mb-3">
+              Quer acompanhar a evolução do clima ao longo do tempo? Inicie rodadas de pesquisa
+              para comparar os resultados de cada período.
+            </p>
+            <Button
+              variant="secondary"
+              onClick={() => void handleCreateRound()}
+              loading={isCreatingRound}
+            >
+              {!isCreatingRound && 'Iniciar primeira rodada'}
+            </Button>
+          </div>
+        )}
 
         {!loading && company && (
           <div className="bg-white border border-[#dce7f2] rounded-2xl p-5 mb-6 shadow-sm print:hidden">
