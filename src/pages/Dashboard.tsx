@@ -12,6 +12,7 @@ import SlowLoadingNotice from '../components/ui/SlowLoadingNotice';
 import StatCard from '../components/dashboard/StatCard';
 import DiagnosisSummaryCard from '../components/dashboard/DiagnosisSummaryCard';
 import ClimateBarChart from '../components/dashboard/ClimateBarChart';
+import RoundsTrendChart, { type RoundTrendPoint } from '../components/dashboard/RoundsTrendChart';
 import DimensionDiagnosisList, {
   type DimensionDiagnosis
 } from '../components/dashboard/DimensionDiagnosisList';
@@ -71,6 +72,7 @@ export default function Dashboard() {
   const [company, setCompany] = useState<CompanyInfo | null>(null);
   const [diagnosis, setDiagnosis] = useState<DiagnosisData | null>(null);
   const [rounds, setRounds] = useState<SurveyRound[]>([]);
+  const [trendPoints, setTrendPoints] = useState<RoundTrendPoint[]>([]);
   const [selectedRoundId, setSelectedRoundId] = useState<string>('');
   const [previousRoundMedia, setPreviousRoundMedia] = useState<number | null>(null);
   const [isCreatingRound, setIsCreatingRound] = useState(false);
@@ -105,14 +107,15 @@ export default function Dashboard() {
       try {
         const headers = await authHeaders(currentUser);
 
-        const [responsesRes, companyRes, diagnosisRes, roundsRes] = await Promise.all([
+        const [responsesRes, companyRes, diagnosisRes, roundsRes, trendRes] = await Promise.all([
           fetch(`${API_URL}/api/admin/responses`, { headers }),
           fetch(`${API_URL}/api/admin/company`, { headers }),
           fetch(`${API_URL}/api/admin/diagnosis`, { headers }),
-          fetch(`${API_URL}/api/admin/rounds`, { headers })
+          fetch(`${API_URL}/api/admin/rounds`, { headers }),
+          fetch(`${API_URL}/api/admin/rounds/trend`, { headers })
         ]);
 
-        if (!responsesRes.ok || !companyRes.ok || !diagnosisRes.ok || !roundsRes.ok) {
+        if (!responsesRes.ok || !companyRes.ok || !diagnosisRes.ok || !roundsRes.ok || !trendRes.ok) {
           throw new Error('O servidor retornou um erro ao carregar os dados do painel.');
         }
 
@@ -120,6 +123,7 @@ export default function Dashboard() {
         const companyInfo: CompanyInfo = await companyRes.json();
         const diagnosisData: DiagnosisData = await diagnosisRes.json();
         const roundsData: SurveyRound[] = await roundsRes.json();
+        const trendData: RoundTrendPoint[] = await trendRes.json();
 
         if (!Array.isArray(responses)) {
           throw new Error('A API retornou um formato inesperado. Era esperada uma lista de respostas.');
@@ -129,6 +133,7 @@ export default function Dashboard() {
         setCompany(companyInfo);
         setDiagnosis(diagnosisData);
         setRounds(roundsData);
+        setTrendPoints(trendData);
       } catch (error) {
         console.error('Erro ao buscar dados do painel:', error);
         setErrorMessage(
@@ -245,6 +250,11 @@ export default function Dashboard() {
       const updatedRounds = [newRound, ...rounds];
       setRounds(updatedRounds);
       handleRoundChange(newRound.id, updatedRounds);
+
+      const trendRes = await fetch(`${API_URL}/api/admin/rounds/trend`, { headers });
+      if (trendRes.ok) {
+        setTrendPoints(await trendRes.json());
+      }
     } catch (error) {
       console.error('Erro ao criar rodada:', error);
       alert('Não foi possível iniciar a nova rodada. Tente novamente.');
@@ -660,6 +670,8 @@ export default function Dashboard() {
         {!loading && !errorMessage && diagnosis && (
           <>
             <DiagnosisSummaryCard summary={diagnosis.resumoExecutivo} />
+
+            <RoundsTrendChart points={trendPoints} />
 
             <ClimateBarChart data={generalClimateData} />
 
