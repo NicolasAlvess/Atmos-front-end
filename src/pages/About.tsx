@@ -1,5 +1,4 @@
 // src/pages/About.tsx
-import { useNavigate } from 'react-router-dom';
 import PageBackground from '../components/layout/PageBackground';
 import AppHeader from '../components/layout/AppHeader';
 import Card from '../components/ui/Card';
@@ -54,11 +53,9 @@ const CURIOSITIES = [
 ];
 
 export default function About() {
-  const navigate = useNavigate();
-
   return (
     <PageBackground>
-      <AppHeader onLogoClick={() => navigate('/')} />
+      <AppHeader />
 
       <main className="relative z-10 flex-grow">
         <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 text-center">
@@ -192,13 +189,14 @@ export default function About() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center sm:items-end gap-2 text-xs text-slate-500">
-            <button
-              onClick={() => navigate('/')}
+          <div className="flex flex-col items-center sm:items-end gap-1 text-xs text-slate-500">
+            <p className="font-semibold text-slate-700">Fale com a gente</p>
+            <a
+              href="mailto:nicolasoliveira.alves@gmail.com"
               className="font-semibold text-blue-600 hover:text-blue-700 transition"
             >
-              Voltar à tela inicial
-            </button>
+              nicolasoliveira.alves@gmail.com
+            </a>
             <span className="text-slate-500">© 2026 Atmos Platform</span>
           </div>
         </div>
