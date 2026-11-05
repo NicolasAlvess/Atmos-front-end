@@ -34,6 +34,10 @@ export default function AppHeader({
             </span>
             <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase">
               Diagnóstico &amp; BI
+              <span className="hidden sm:inline text-slate-400 normal-case tracking-normal">
+                {' '}
+                · por PsicoStudent
+              </span>
             </span>
           </div>
           {badge}

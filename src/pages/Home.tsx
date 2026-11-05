@@ -100,6 +100,7 @@ export default function Home() {
           </div>
           <div className="flex items-center space-x-4">
             <span className="text-slate-500">© 2026 Atmos Platform</span>
+            <span className="text-slate-500">Desenvolvido por PsicoStudent</span>
           </div>
         </div>
       </footer>

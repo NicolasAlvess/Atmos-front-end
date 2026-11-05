@@ -186,6 +186,7 @@ export default function About() {
             <div>
               <p className="font-display text-sm font-semibold text-slate-800">Atmos</p>
               <p className="text-xs text-slate-500">Diagnóstico de clima &amp; inclusão</p>
+              <p className="text-xs text-slate-500">Desenvolvido por PsicoStudent</p>
             </div>
           </div>
 
