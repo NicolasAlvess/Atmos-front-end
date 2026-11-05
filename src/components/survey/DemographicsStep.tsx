@@ -97,7 +97,7 @@ export default function DemographicsStep({
               name={field.name}
               value={formData[field.name]}
               onChange={onChange}
-              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 px-3.5 text-sm font-medium text-slate-800 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 px-3.5 text-base sm:text-sm font-medium text-slate-800 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               required
             >
               <option value="">Selecione...</option>

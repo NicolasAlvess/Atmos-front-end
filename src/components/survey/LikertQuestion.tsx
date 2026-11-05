@@ -74,7 +74,7 @@ export default function LikertQuestion({
                 />
                 <label
                   htmlFor={`${name}_${opt.value}`}
-                  className={`flex sm:flex-col items-center justify-between sm:justify-center p-3 rounded-xl border bg-white hover:bg-slate-50 cursor-pointer text-center text-xs font-semibold text-slate-700 transition peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2 ${tone.label}`}
+                  className={`flex sm:flex-col items-center justify-between sm:justify-center px-3 py-3.5 sm:py-3 rounded-xl border bg-white hover:bg-slate-50 cursor-pointer text-center text-xs font-semibold text-slate-700 transition peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2 ${tone.label}`}
                 >
                   <span className={`sm:mb-1 font-bold ${tone.number}`}>{opt.value}</span>{' '}
                   <span className="text-[10px] sm:text-xs leading-tight">{opt.label}</span>

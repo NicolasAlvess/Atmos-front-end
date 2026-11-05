@@ -137,7 +137,7 @@ export default function Login() {
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
                     <label htmlFor="login-email" className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">E-mail</label>
-                    <input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
+                    <input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} className="block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
@@ -151,7 +151,7 @@ export default function Login() {
                       </button>
                     </div>
                     <div className="relative">
-                      <input id="login-password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} className="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
+                      <input id="login-password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} autoComplete="current-password" className="block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} disabled={isLoading} aria-pressed={showPassword} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-600">
                         {showPassword ? "Ocultar" : "Mostrar"}
                       </button>
@@ -203,7 +203,7 @@ export default function Login() {
                 <form onSubmit={handleReset} className="space-y-4">
                   <div>
                     <label htmlFor="reset-email" className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">E-mail</label>
-                    <input id="reset-email" type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} required disabled={isResetting} className="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
+                    <input id="reset-email" type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} required disabled={isResetting} autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} className="block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-slate-200 bg-sky-50/30 text-slate-900 focus:ring-2 focus:ring-blue-500 disabled:opacity-50" />
                   </div>
 
                   <div className="pt-2">

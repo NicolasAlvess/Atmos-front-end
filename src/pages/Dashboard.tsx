@@ -569,7 +569,7 @@ export default function Dashboard() {
               <select
                 value={selectedRoundId}
                 onChange={(e) => handleRoundChange(e.target.value)}
-                className="flex-grow min-w-0 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:ring-2 focus:ring-blue-500"
+                className="flex-grow min-w-0 px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Todas as respostas</option>
                 {rounds.map((round) => (
@@ -635,7 +635,7 @@ export default function Dashboard() {
                 type="text"
                 readOnly
                 value={surveyLink}
-                className="flex-grow min-w-0 px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700"
+                className="flex-grow min-w-0 px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700"
               />
               <Button onClick={() => void handleCopyLink()} className="shrink-0">
                 {linkCopied ? 'Link copiado!' : 'Copiar link'}

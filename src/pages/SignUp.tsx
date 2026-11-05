@@ -55,7 +55,7 @@ export default function SignUp() {
   const markTouched = (field: Field) => setTouched((prev) => ({ ...prev, [field]: true }));
 
   const inputClass = (hasError: boolean) =>
-    `block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-sky-50/30 text-slate-900 focus:ring-2 disabled:opacity-50 ${
+    `block w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border bg-sky-50/30 text-slate-900 focus:ring-2 disabled:opacity-50 ${
       hasError
         ? 'border-red-300 focus:ring-red-400 bg-red-50/40'
         : 'border-slate-200 focus:ring-blue-500'
@@ -161,6 +161,7 @@ export default function SignUp() {
                       onChange={(e) => setCompanyName(e.target.value)}
                       onBlur={() => markTouched('companyName')}
                       disabled={isLoading}
+                      autoComplete="organization"
                       aria-invalid={!!companyNameError}
                       aria-describedby={companyNameError ? 'companyName-error' : undefined}
                       className={inputClass(!!companyNameError)}
@@ -178,6 +179,10 @@ export default function SignUp() {
                       onChange={(e) => setEmail(e.target.value)}
                       onBlur={() => markTouched('email')}
                       disabled={isLoading}
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                       aria-invalid={!!emailError}
                       aria-describedby={emailError ? 'signup-email-error' : undefined}
                       className={inputClass(!!emailError)}
@@ -193,6 +198,7 @@ export default function SignUp() {
                       onChange={(e) => setPassword(e.target.value)}
                       onBlur={() => markTouched('password')}
                       disabled={isLoading}
+                      autoComplete="new-password"
                       aria-invalid={!!passwordError}
                       aria-describedby="signup-password-rules"
                       className={inputClass(!!passwordError)}
