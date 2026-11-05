@@ -211,7 +211,16 @@ export default function Survey() {
       } else {
         const errorText = await response.text().catch(() => '');
         console.error('Erro ao enviar pesquisa:', response.status, errorText);
-        alert(`Não foi possível enviar suas respostas. Erro: ${response.status}. Tente novamente.`);
+
+        let friendlyMessage = 'Não foi possível enviar suas respostas. Tente novamente em alguns instantes.';
+        try {
+          const parsed = JSON.parse(errorText) as { error?: string };
+          if (parsed.error) friendlyMessage = parsed.error;
+        } catch {
+          // Corpo da resposta não era JSON; mantém a mensagem padrão.
+        }
+
+        alert(friendlyMessage);
         setIsSubmitting(false);
       }
     } catch (error) {
