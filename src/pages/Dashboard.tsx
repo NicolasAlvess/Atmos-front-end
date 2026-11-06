@@ -20,6 +20,7 @@ import InterventionPlanList, {
   type InterventionAction
 } from '../components/dashboard/InterventionPlanList';
 import SectorBreakdown, { type SectorAnalysis } from '../components/dashboard/SectorBreakdown';
+import DemographicsBreakdown from '../components/dashboard/DemographicsBreakdown';
 import { PUBLIC_SITE_URL } from '../lib/siteUrl';
 
 interface ResponseData {
@@ -692,6 +693,15 @@ export default function Dashboard() {
             </h3>
 
             <SectorBreakdown sectors={sectorsAnalysis} />
+
+            <h3 className="text-lg font-bold text-slate-800 mb-1 mt-8 print:mt-10 print:break-before-page">
+              Perfil dos Colaboradores (Dados Coletados)
+            </h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Distribuição demográfica das {data.length} respostas recebidas.
+            </p>
+
+            <DemographicsBreakdown data={data} total={data.length} />
           </>
         )}
       </main>

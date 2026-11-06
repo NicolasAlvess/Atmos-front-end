@@ -22,7 +22,11 @@ export default function ClimateBarChart({
         <h3 className="text-lg font-bold text-slate-800">Mapeamento de Clima (Visão Geral)</h3>
       </div>
 
-      <div className="h-80 w-full" aria-hidden="true">
+      {/* Na tela: gráfico interativo (Recharts/SVG). Recharts mede o contêiner via
+          ResizeObserver, o que não é confiável no momento da impressão do navegador
+          (o gráfico sai em branco ou cortado no PDF) — por isso ele é ocultado na
+          impressão e substituído pela versão abaixo, feita só com CSS. */}
+      <div className="h-80 w-full print:hidden" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
@@ -53,6 +57,25 @@ export default function ClimateBarChart({
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Na impressão/PDF: versão estática em CSS puro, sem medição de contêiner,
+          garantindo que o gráfico sempre apareça corretamente no relatório. */}
+      <div className="hidden print:block space-y-3">
+        {data.map((entry) => (
+          <div key={entry.name}>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="font-medium text-slate-700">{entry.name}</span>
+              <span className="font-bold text-slate-900">{entry.nota.toFixed(1)} / 5.0</span>
+            </div>
+            <div className="w-full h-3 border border-slate-300 rounded-full overflow-hidden bg-slate-50">
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${(entry.nota / 5) * 100}%`, backgroundColor: getClimateBarColor(entry.nota) }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
       <table className="sr-only">

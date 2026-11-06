@@ -36,7 +36,10 @@ export default function RoundsTrendChart({ points }: { points: RoundTrendPoint[]
         </p>
       </div>
 
-      <div className="h-72 w-full" aria-hidden="true">
+      {/* Na impressão, o Recharts não mede o contêiner de forma confiável (gráfico
+          sai em branco/cortado no PDF); por isso fica oculto e é substituído pela
+          versão em CSS puro abaixo. */}
+      <div className="h-72 w-full print:hidden" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
@@ -65,6 +68,23 @@ export default function RoundsTrendChart({ points }: { points: RoundTrendPoint[]
             />
           </LineChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="hidden print:block space-y-3">
+        {chartData.map((point) => (
+          <div key={point.name}>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="font-medium text-slate-700">{point.name}</span>
+              <span className="font-bold text-slate-900">{point.media.toFixed(1)} / 5.0</span>
+            </div>
+            <div className="w-full h-3 border border-slate-300 rounded-full overflow-hidden bg-slate-50">
+              <div
+                className="h-full rounded-full bg-indigo-600"
+                style={{ width: `${(point.media / 5) * 100}%` }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
       <table className="sr-only">
