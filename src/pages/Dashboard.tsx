@@ -21,6 +21,15 @@ import InterventionPlanList, {
 } from '../components/dashboard/InterventionPlanList';
 import SectorBreakdown, { type SectorAnalysis } from '../components/dashboard/SectorBreakdown';
 import DemographicsBreakdown from '../components/dashboard/DemographicsBreakdown';
+import ReportSection from '../components/dashboard/ReportSection';
+import RankedDimensionsList from '../components/dashboard/RankedDimensionsList';
+import SegmentAveragesList from '../components/dashboard/SegmentAveragesList';
+import {
+  calcFavorabilityPercent,
+  calcSegmentAverages,
+  rankDimensions,
+  TEMPO_EMPRESA_ORDER
+} from '../lib/reportInsights';
 import { PUBLIC_SITE_URL } from '../lib/siteUrl';
 
 interface ResponseData {
@@ -312,6 +321,24 @@ export default function Dashboard() {
     }
   ];
 
+  const favorabilidadePercent = calcFavorabilityPercent(data);
+  const dimensoesRankeadas = diagnosis ? rankDimensions(diagnosis.dimensoes) : [];
+  const segmentosPorSetor = calcSegmentAverages(data, 'setor');
+  const segmentosPorTempo = calcSegmentAverages(data, 'tempo_empresa', TEMPO_EMPRESA_ORDER);
+
+  const periodoColeta = (() => {
+    const timestamps = data
+      .map((item) => item.timestamp)
+      .filter((value): value is string => Boolean(value))
+      .sort();
+
+    if (timestamps.length === 0) return null;
+
+    const inicio = new Date(timestamps[0]).toLocaleDateString('pt-BR');
+    const fim = new Date(timestamps[timestamps.length - 1]).toLocaleDateString('pt-BR');
+    return inicio === fim ? `Coletado em ${inicio}` : `Coletado entre ${inicio} e ${fim}`;
+  })();
+
   const surveyLink = company ? `${PUBLIC_SITE_URL}/survey/${company.slug}` : '';
 
   const handleCopyLink = async () => {
@@ -500,7 +527,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 w-full md:flex md:w-auto md:gap-4">
+          <div className="grid grid-cols-2 gap-3 w-full md:flex md:w-auto md:gap-4 print:hidden">
             <StatCard
               label="Amostragem"
               value={loading ? '...' : data.length}
@@ -669,40 +696,143 @@ export default function Dashboard() {
         )}
 
         {!loading && !errorMessage && diagnosis && (
-          <>
-            <DiagnosisSummaryCard summary={diagnosis.resumoExecutivo} />
+          <div className="mt-2">
+            <ReportSection number={1} title="Introdução e Objetivos" breakBefore={false}>
+              <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm print:border-slate-300 print:shadow-none space-y-3 text-sm text-slate-600 leading-relaxed">
+                <p>
+                  Este relatório apresenta o diagnóstico de clima organizacional e inclusão da{' '}
+                  <strong className="text-slate-800">{company?.name}</strong>, com base nas respostas
+                  coletadas através da plataforma Atmos.
+                </p>
+                <p>
+                  <strong className="text-slate-800">Objetivo:</strong> mapear a percepção dos
+                  colaboradores sobre pertencimento, valorização, segurança psicológica, respeito e
+                  diversidade, equidade, capacitação, comunicação e liderança, identificando pontos
+                  fortes e oportunidades de melhoria para orientar ações concretas de gestão de
+                  pessoas.
+                </p>
+                <p>
+                  <strong className="text-slate-800">Período:</strong>{' '}
+                  {periodoColeta ?? 'Ainda não há respostas registradas.'}
+                  {selectedRoundId && rounds.length > 0 && (
+                    <> — Rodada: {rounds.find((r) => r.id === selectedRoundId)?.label}</>
+                  )}
+                </p>
+                <p>
+                  <strong className="text-slate-800">Abrangência:</strong> todos os colaboradores da{' '}
+                  {company?.name} que responderam voluntariamente ao link único de pesquisa
+                  distribuído pela empresa.
+                </p>
+              </div>
+            </ReportSection>
 
-            <RoundsTrendChart points={trendPoints} />
+            <ReportSection number={2} title="Metodologia">
+              <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm print:border-slate-300 print:shadow-none space-y-3 text-sm text-slate-600 leading-relaxed mb-6 print:break-inside-avoid">
+                <p>
+                  <strong className="text-slate-800">Amostragem:</strong> {data.length} resposta(s)
+                  coletada(s) de forma voluntária e anônima. O sistema não mantém uma lista de
+                  colaboradores convidados, portanto a taxa de adesão (respondentes vs. elegíveis)
+                  deve ser acompanhada manualmente pela empresa, se desejado.
+                </p>
+                <p>
+                  <strong className="text-slate-800">Instrumento:</strong> escala Likert de 1
+                  (discordo totalmente) a 5 (concordo totalmente), com 8 perguntas gerais de clima e
+                  inclusão, mais 2 perguntas específicas por setor de atuação, além de dados
+                  sociodemográficos (tempo de empresa, setor, faixa etária, gênero e raça/cor).
+                </p>
+                <p>
+                  <strong className="text-slate-800">Garantia de sigilo:</strong> as respostas são
+                  100% anônimas — não são coletados nome, e-mail ou qualquer dado de identificação
+                  direta. Os dados sociodemográficos são analisados apenas de forma agregada.
+                </p>
+              </div>
 
-            <ClimateBarChart data={generalClimateData} />
-
-            <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm mb-8 print:break-inside-avoid">
-              <h3 className="text-lg font-bold text-slate-800 mb-1">
-                Diagnóstico de Clima &amp; Plano de Intervenção
-              </h3>
-              <p className="text-sm text-slate-500 mb-5">
-                Análise por dimensão, fundamentada em teorias científicas de motivação e gestão.
+              <h4 className="font-bold text-slate-800 mb-1">Perfil da Amostra</h4>
+              <p className="text-sm text-slate-500 mb-4">
+                Distribuição demográfica das {data.length} respostas recebidas.
               </p>
+              <DemographicsBreakdown data={data} total={data.length} />
+            </ReportSection>
 
-              <DimensionDiagnosisList dimensions={diagnosis.dimensoes} />
+            <ReportSection
+              number={3}
+              title="Resultados Gerais (Visão Macro)"
+              description="Índice de favorabilidade geral e indicadores-chave avaliados na pesquisa."
+            >
+              <DiagnosisSummaryCard summary={diagnosis.resumoExecutivo} />
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                <StatCard label="Amostragem" value={data.length} suffix="respostas" />
+                <StatCard label="Média Global" value={diagnosis.mediaGeral} suffix="/ 5.0" accent />
+                <StatCard label="Favorabilidade" value={favorabilidadePercent} suffix="% (notas 4-5)" />
+                <StatCard
+                  label="Ponto Crítico"
+                  value={diagnosis.pontoCritico?.nota ?? '—'}
+                  suffix={diagnosis.pontoCritico?.dimensao ?? ''}
+                />
+              </div>
+
+              <RoundsTrendChart points={trendPoints} />
+
+              <ClimateBarChart data={generalClimateData} />
+            </ReportSection>
+
+            <ReportSection
+              number={4}
+              title="Destaques: Pontos Fortes e Pontos de Atenção"
+              description="Ranking das dimensões avaliadas, diagnóstico detalhado e segmentação por perfil."
+            >
+              <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm print:border-slate-300 print:shadow-none mb-6 print:break-inside-avoid">
+                <h4 className="font-bold text-slate-800 mb-4">Ranking das Dimensões</h4>
+                <RankedDimensionsList dimensions={dimensoesRankeadas} />
+              </div>
+
+              <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm print:border-slate-300 print:shadow-none mb-6">
+                <h4 className="font-bold text-slate-800 mb-1">Diagnóstico Detalhado por Dimensão</h4>
+                <p className="text-sm text-slate-500 mb-5">
+                  Análise fundamentada em teorias científicas de motivação e gestão.
+                </p>
+                <DimensionDiagnosisList dimensions={diagnosis.dimensoes} />
+              </div>
+
+              <h4 className="font-bold text-slate-800 mb-4 print:break-before-page">
+                Segmentação por Perfil
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:grid-cols-2 mb-6">
+                <div className="bg-white border border-[#dce7f2] rounded-2xl p-5 shadow-sm print:border-slate-300 print:shadow-none print:break-inside-avoid">
+                  <h5 className="font-bold text-slate-800 mb-4">Favorabilidade por Setor</h5>
+                  <SegmentAveragesList segments={segmentosPorSetor} />
+                </div>
+                <div className="bg-white border border-[#dce7f2] rounded-2xl p-5 shadow-sm print:border-slate-300 print:shadow-none print:break-inside-avoid">
+                  <h5 className="font-bold text-slate-800 mb-4">Favorabilidade por Tempo de Empresa</h5>
+                  <SegmentAveragesList segments={segmentosPorTempo} />
+                </div>
+              </div>
+
+              <h4 className="font-bold text-slate-800 mb-4 print:break-before-page">
+                Detalhamento por Setor (Microclima)
+              </h4>
+              <SectorBreakdown sectors={sectorsAnalysis} />
+            </ReportSection>
+
+            <ReportSection number={5} title="Análise Qualitativa (Comentários Abertos)">
+              <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-6 text-sm text-slate-600 print:break-inside-avoid">
+                <p>
+                  Este ciclo de pesquisa não incluiu perguntas abertas, portanto não há comentários
+                  livres para analisar nesta rodada. Para habilitar essa análise em futuras rodadas,
+                  é possível adicionar um campo de comentário aberto ao questionário.
+                </p>
+              </div>
+            </ReportSection>
+
+            <ReportSection
+              number={6}
+              title="Plano de Ação Priorizado"
+              description="Para cada ponto crítico identificado, ações objetivas de curto, médio e longo prazo."
+            >
               <InterventionPlanList actions={diagnosis.planoIntervencao} />
-            </div>
-
-            <h3 className="text-lg font-bold text-slate-800 mb-4 print:mt-10 print:break-before-page">
-              Realidade Específica por Setor (Microclima)
-            </h3>
-
-            <SectorBreakdown sectors={sectorsAnalysis} />
-
-            <h3 className="text-lg font-bold text-slate-800 mb-1 mt-8 print:mt-10 print:break-before-page">
-              Perfil dos Colaboradores (Dados Coletados)
-            </h3>
-            <p className="text-sm text-slate-500 mb-4">
-              Distribuição demográfica das {data.length} respostas recebidas.
-            </p>
-
-            <DemographicsBreakdown data={data} total={data.length} />
-          </>
+            </ReportSection>
+          </div>
         )}
       </main>
 

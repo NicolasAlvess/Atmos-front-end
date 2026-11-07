@@ -42,11 +42,13 @@ export default function InterventionPlanList({ actions }: { actions: Interventio
   const groups = groupByDimension(actions);
 
   return (
-    <div className="mt-6 pt-6 border-t border-slate-100">
-      <h4 className="font-bold text-slate-800 mb-3">Plano de Intervenção Priorizado</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 print:grid-cols-2">
         {groups.map((group) => (
-          <div key={group.dimensao} className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+          <div
+            key={group.dimensao}
+            className="rounded-xl bg-slate-50 border border-slate-100 p-4 print:border-slate-300 print:break-inside-avoid"
+          >
             <p className="font-semibold text-slate-800">{group.dimensao}</p>
             <p className="text-xs text-slate-500 italic mb-3">{group.teoria}</p>
 
