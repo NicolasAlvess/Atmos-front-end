@@ -4,6 +4,17 @@
   font-family: 'Fredoka', ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Por padrão, os navegadores não imprimem cores de fundo (para economizar tinta),
+   a menos que a opção "Gráficos de segundo plano" esteja marcada manualmente no
+   diálogo de impressão. Isso fazia as barras dos gráficos do relatório saírem em
+   branco no PDF exportado. Esta regra força as cores a sempre aparecerem. */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
