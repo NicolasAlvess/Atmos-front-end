@@ -1,4 +1,5 @@
 import Badge from '../ui/Badge';
+import AnimatedBar from '../ui/AnimatedBar';
 import { getClimateBarColor } from '../../lib/climateColor';
 import type { DimensionDiagnosis } from './DimensionDiagnosisList';
 
@@ -43,12 +44,7 @@ export default function RankedDimensionsList({
               {dimension.nome}
             </span>
             <div className="w-28 shrink-0 hidden sm:block">
-              <div className="w-full bg-slate-200 rounded-full h-2 print:border print:border-slate-300">
-                <div
-                  className="h-2 rounded-full"
-                  style={{ width: `${(dimension.nota / 5) * 100}%`, backgroundColor: getClimateBarColor(dimension.nota) }}
-                />
-              </div>
+              <AnimatedBar percent={(dimension.nota / 5) * 100} color={getClimateBarColor(dimension.nota)} />
             </div>
             <span className="text-sm font-bold text-slate-800 w-10 text-right shrink-0">{dimension.nota.toFixed(1)}</span>
             <Badge tone={badge.tone}>{badge.label}</Badge>

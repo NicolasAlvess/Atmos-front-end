@@ -532,6 +532,7 @@ export default function Dashboard() {
               label="Amostragem"
               value={loading ? '...' : data.length}
               suffix="respostas"
+              animate
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 2a4 4 0 10-8 0" />
@@ -543,6 +544,8 @@ export default function Dashboard() {
               value={loading ? '...' : diagnosis?.mediaGeral ?? '0.0'}
               suffix="/ 5.0"
               accent
+              animate
+              decimals={1}
               icon={
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -697,7 +700,57 @@ export default function Dashboard() {
 
         {!loading && !errorMessage && diagnosis && (
           <div className="mt-2">
-            <ReportSection number={1} title="Introdução e Objetivos" breakBefore={false}>
+            <div className="print:hidden mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-[fadeIn_0.4s_ease-out]">
+              <div className="rounded-2xl border border-[#dce7f2] bg-white shadow-sm p-5">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Favorabilidade geral
+                </p>
+                <p className="text-3xl font-display font-bold text-slate-900">
+                  {favorabilidadePercent}%
+                  <span className="text-sm font-normal text-slate-400"> notas 4-5</span>
+                </p>
+              </div>
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 shadow-sm p-5">
+                <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">
+                  Ponto forte
+                </p>
+                <p className="text-xl font-display font-bold text-emerald-900 truncate" title={diagnosis.pontoForte?.dimensao}>
+                  {diagnosis.pontoForte?.dimensao ?? '—'}
+                </p>
+                <p className="text-sm text-emerald-700 mt-0.5">{diagnosis.pontoForte?.nota.toFixed(1)} / 5.0</p>
+              </div>
+              <div className="rounded-2xl border border-red-200 bg-red-50 shadow-sm p-5">
+                <p className="text-xs font-semibold text-red-700 uppercase tracking-wider mb-1">
+                  Ponto crítico
+                </p>
+                <p className="text-xl font-display font-bold text-red-900 truncate" title={diagnosis.pontoCritico?.dimensao}>
+                  {diagnosis.pontoCritico?.dimensao ?? '—'}
+                </p>
+                <p className="text-sm text-red-700 mt-0.5">{diagnosis.pontoCritico?.nota.toFixed(1)} / 5.0</p>
+              </div>
+            </div>
+
+            <nav className="print:hidden sticky top-[64px] z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-8 bg-[#f4f8fc]/90 backdrop-blur-sm border-b border-[#dce7f2] animate-[fadeIn_0.5s_ease-out]">
+              <div className="flex gap-2 overflow-x-auto py-2.5 no-scrollbar">
+                {[
+                  { href: '#secao-introducao', label: 'Introdução' },
+                  { href: '#secao-metodologia', label: 'Metodologia' },
+                  { href: '#secao-resultados', label: 'Resultados' },
+                  { href: '#secao-destaques', label: 'Destaques' },
+                  { href: '#secao-plano', label: 'Plano de Ação' }
+                ].map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="shrink-0 text-xs font-semibold text-slate-600 hover:text-blue-700 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-200 px-3 py-1.5 rounded-full transition whitespace-nowrap"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </nav>
+
+            <ReportSection id="secao-introducao" number={1} title="Introdução e Objetivos" breakBefore={false}>
               <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm print:border-slate-300 print:shadow-none space-y-3 text-sm text-slate-600 leading-relaxed">
                 <p>
                   Este relatório apresenta o diagnóstico de clima organizacional e inclusão da{' '}
@@ -726,7 +779,7 @@ export default function Dashboard() {
               </div>
             </ReportSection>
 
-            <ReportSection number={2} title="Metodologia">
+            <ReportSection id="secao-metodologia" number={2} title="Metodologia">
               <div className="bg-white border border-[#dce7f2] rounded-2xl p-6 shadow-sm print:border-slate-300 print:shadow-none space-y-3 text-sm text-slate-600 leading-relaxed mb-6 print:break-inside-avoid">
                 <p>
                   <strong className="text-slate-800">Amostragem:</strong> {data.length} resposta(s)
@@ -755,6 +808,7 @@ export default function Dashboard() {
             </ReportSection>
 
             <ReportSection
+              id="secao-resultados"
               number={3}
               title="Resultados Gerais (Visão Macro)"
               description="Índice de favorabilidade geral e indicadores-chave avaliados na pesquisa."
@@ -762,13 +816,15 @@ export default function Dashboard() {
               <DiagnosisSummaryCard summary={diagnosis.resumoExecutivo} />
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                <StatCard label="Amostragem" value={data.length} suffix="respostas" />
-                <StatCard label="Média Global" value={diagnosis.mediaGeral} suffix="/ 5.0" accent />
-                <StatCard label="Favorabilidade" value={favorabilidadePercent} suffix="% (notas 4-5)" />
+                <StatCard label="Amostragem" value={data.length} suffix="respostas" animate />
+                <StatCard label="Média Global" value={diagnosis.mediaGeral} suffix="/ 5.0" accent animate decimals={1} />
+                <StatCard label="Favorabilidade" value={favorabilidadePercent} suffix="% (notas 4-5)" animate />
                 <StatCard
                   label="Ponto Crítico"
                   value={diagnosis.pontoCritico?.nota ?? '—'}
                   suffix={diagnosis.pontoCritico?.dimensao ?? ''}
+                  animate
+                  decimals={1}
                 />
               </div>
 
@@ -778,6 +834,7 @@ export default function Dashboard() {
             </ReportSection>
 
             <ReportSection
+              id="secao-destaques"
               number={4}
               title="Destaques: Pontos Fortes e Pontos de Atenção"
               description="Ranking das dimensões avaliadas, diagnóstico detalhado e segmentação por perfil."
@@ -815,7 +872,7 @@ export default function Dashboard() {
               <SectorBreakdown sectors={sectorsAnalysis} />
             </ReportSection>
 
-            <ReportSection number={5} title="Análise Qualitativa (Comentários Abertos)">
+            <ReportSection id="secao-qualitativa" number={5} title="Análise Qualitativa (Comentários Abertos)">
               <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-6 text-sm text-slate-600 print:break-inside-avoid">
                 <p>
                   Este ciclo de pesquisa não incluiu perguntas abertas, portanto não há comentários
@@ -826,6 +883,7 @@ export default function Dashboard() {
             </ReportSection>
 
             <ReportSection
+              id="secao-plano"
               number={6}
               title="Plano de Ação Priorizado"
               description="Para cada ponto crítico identificado, ações objetivas de curto, médio e longo prazo."

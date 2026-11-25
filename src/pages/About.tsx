@@ -5,6 +5,8 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import AtmosLogo from '../components/icons/AtmosLogo';
 import { THEORIES } from '../lib/theories';
+import { getClimateBarColor } from '../lib/climateColor';
+import AnimatedBar from '../components/ui/AnimatedBar';
 
 const WHY_IT_MATTERS = [
   {
@@ -45,6 +47,39 @@ const WHY_IT_MATTERS = [
   }
 ];
 
+const HOW_IT_WORKS = [
+  {
+    title: 'A empresa se cadastra',
+    description: 'Cria uma conta em minutos e recebe um link exclusivo de pesquisa para distribuir aos colaboradores.'
+  },
+  {
+    title: 'Colaboradores respondem, de forma anônima',
+    description: 'Sem nome ou e-mail: só perguntas de clima numa escala de 1 a 5 e dados demográficos agregados.'
+  },
+  {
+    title: 'O diagnóstico é gerado automaticamente',
+    description: 'Cada dimensão recebe uma nota, uma classificação (forte, alerta ou crítica) e a teoria científica que explica o resultado.'
+  },
+  {
+    title: 'O gestor acompanha tudo em um painel',
+    description: 'Ranking das dimensões, plano de intervenção priorizado e evolução do clima entre rodadas de pesquisa.'
+  }
+];
+
+const SAMPLE_DIMENSIONS = [
+  { nome: 'Pertencimento', nota: 4.1 },
+  { nome: 'Respeito e Diversidade', nota: 4.1 },
+  { nome: 'Comunicação', nota: 3.5 },
+  { nome: 'Equidade', nota: 2.6 },
+  { nome: 'Segurança Psicológica', nota: 2.5 }
+];
+
+function sampleClassification(nota: number): { label: string; tone: 'emerald' | 'amber' | 'red' } {
+  if (nota >= 4.0) return { label: 'Ponto Forte', tone: 'emerald' };
+  if (nota >= 3.0) return { label: 'Alerta', tone: 'amber' };
+  return { label: 'Crítico', tone: 'red' };
+}
+
 const CURIOSITIES = [
   'O estudo de clima organizacional tem raízes nos experimentos de Hawthorne, na década de 1930, que mostraram que fatores sociais afetam a produtividade tanto quanto fatores físicos do ambiente de trabalho.',
   '"Segurança psicológica" é um termo popularizado pela pesquisadora Amy Edmondson, de Harvard, e hoje é apontado como um dos fatores mais citados em equipes de alta performance.',
@@ -76,6 +111,74 @@ export default function About() {
             usam a Atmos para entender, de forma 100% anônima, como os colaboradores percebem o
             dia a dia no trabalho — e para transformar essas respostas em um plano de ação real.
           </p>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+            <Badge tone="blue">8 dimensões avaliadas</Badge>
+            <Badge tone="violet">4 teorias científicas</Badge>
+            <Badge tone="emerald">100% anônimo</Badge>
+          </div>
+        </section>
+
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-14">
+          <div className="text-center mb-8">
+            <Badge tone="blue">Como funciona</Badge>
+            <h2 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 mt-3">
+              Da resposta ao plano de ação, em quatro passos
+            </h2>
+            <p className="text-sm sm:text-base text-slate-500 mt-2 max-w-2xl mx-auto">
+              Nenhuma planilha manual: o sistema cuida de tudo, da coleta à interpretação.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <ol className="space-y-5">
+              {HOW_IT_WORKS.map((item, index) => (
+                <li
+                  key={item.title}
+                  className="flex gap-4 animate-[fadeIn_0.5s_ease-out_backwards]"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                >
+                  <span className="shrink-0 w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-display font-semibold flex items-center justify-center shadow-sm">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-800">{item.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed mt-0.5">{item.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <Card className="p-6 animate-[fadeIn_0.6s_ease-out_backwards]" style={{ animationDelay: '200ms' }}>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+                Exemplo de diagnóstico gerado
+              </p>
+              <div className="space-y-3">
+                {SAMPLE_DIMENSIONS.map((dimension) => {
+                  const classification = sampleClassification(dimension.nota);
+                  return (
+                    <div key={dimension.nome}>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="text-sm font-medium text-slate-700 truncate" title={dimension.nome}>
+                          {dimension.nome}
+                        </span>
+                        <Badge tone={classification.tone}>{classification.label}</Badge>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <AnimatedBar percent={(dimension.nota / 5) * 100} color={getClimateBarColor(dimension.nota)} />
+                        </div>
+                        <span className="text-sm font-bold text-slate-800 w-9 text-right shrink-0">
+                          {dimension.nota.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-slate-400 mt-4">Dados ilustrativos, só para exemplificar o formato do diagnóstico.</p>
+            </Card>
+          </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-14">
@@ -91,8 +194,13 @@ export default function About() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {WHY_IT_MATTERS.map((item) => (
-              <Card key={item.title} hoverable className="p-6">
+            {WHY_IT_MATTERS.map((item, index) => (
+              <Card
+                key={item.title}
+                hoverable
+                className="p-6 animate-[fadeIn_0.5s_ease-out_backwards]"
+                style={{ animationDelay: `${index * 90}ms` }}
+              >
                 <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     {item.icon}
@@ -120,7 +228,12 @@ export default function About() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {THEORIES.map((theory, index) => (
-                <Card key={theory.id} hoverable className="p-6 flex gap-4">
+                <Card
+                  key={theory.id}
+                  hoverable
+                  className="p-6 flex gap-4 animate-[fadeIn_0.5s_ease-out_backwards]"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                >
                   <div
                     className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-white font-display font-semibold shadow-sm ${
                       ['bg-gradient-to-tr from-blue-600 to-indigo-600',
@@ -154,7 +267,8 @@ export default function About() {
             {CURIOSITIES.map((fact, index) => (
               <div
                 key={index}
-                className="bg-white border border-[#dce7f2] rounded-2xl p-5 shadow-sm flex gap-3"
+                className="bg-white border border-[#dce7f2] rounded-2xl p-5 shadow-sm flex gap-3 animate-[fadeIn_0.5s_ease-out_backwards]"
+                style={{ animationDelay: `${index * 90}ms` }}
               >
                 <span className="shrink-0 w-7 h-7 rounded-full bg-amber-50 text-amber-600 text-xs font-bold flex items-center justify-center mt-0.5">
                   {index + 1}

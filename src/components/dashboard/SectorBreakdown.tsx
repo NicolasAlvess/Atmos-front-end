@@ -1,4 +1,5 @@
 import Card from '../ui/Card';
+import AnimatedBar from '../ui/AnimatedBar';
 import { getClimateBarColor } from '../../lib/climateColor';
 
 export interface SectorAnalysis {
@@ -19,12 +20,7 @@ function SectorMetric({ label, value }: { label: string; value: number }) {
         </span>
         <span className="font-bold text-slate-800">{value}</span>
       </div>
-      <div className="w-full bg-slate-200 rounded-full h-2 print:border print:border-slate-300">
-        <div
-          className="h-2 rounded-full"
-          style={{ width: `${(value / 5) * 100}%`, backgroundColor: getClimateBarColor(value) }}
-        />
-      </div>
+      <AnimatedBar percent={(value / 5) * 100} color={getClimateBarColor(value)} />
     </div>
   );
 }

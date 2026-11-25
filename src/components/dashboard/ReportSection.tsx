@@ -5,16 +5,18 @@ export default function ReportSection({
   title,
   description,
   children,
-  breakBefore = true
+  breakBefore = true,
+  id
 }: {
   number: number;
   title: string;
   description?: string;
   children: ReactNode;
   breakBefore?: boolean;
+  id?: string;
 }) {
   return (
-    <section className={`mb-10 ${breakBefore ? 'print:break-before-page print:mt-10' : ''}`}>
+    <section id={id} className={`mb-10 scroll-mt-28 ${breakBefore ? 'print:break-before-page print:mt-10' : ''}`}>
       <div className="flex items-baseline gap-2 mb-1">
         <span className="font-display text-sm font-bold text-blue-600 print:text-slate-900">
           {number}.
